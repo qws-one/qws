@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="IdeKts1" type="JetRunConfigurationType" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="IdeKts1Kt" />
+    <module name="qws.apps.appB.main" />
+    <option name="PROGRAM_PARAMETERS" value="apps/appB/src/main/kotlin/IdeKts1.kt" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

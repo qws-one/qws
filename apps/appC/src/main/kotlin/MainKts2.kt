@@ -1,5 +1,3 @@
-import qws_local.ApplicationInstance
-import qws_local.ProjectInstance
 import javax.script.ScriptEngineManager
 import kotlin.system.measureTimeMillis
 

@@ -1,5 +1,3 @@
-package qws_local
-
 //
 //
 //

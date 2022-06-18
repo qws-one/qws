@@ -2,8 +2,6 @@
 //
 //
 
-import qws_local.*
-
 object Main {
     fun main() {
         qws out qws.app

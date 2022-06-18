@@ -1,38 +1,29 @@
-package qws_local_host
-
-import java.net.*
-import java.nio.ByteBuffer
-import java.nio.channels.ServerSocketChannel
-import java.nio.channels.SocketChannel
-import java.nio.file.Files
-
+// libs/libLocalHost/src/main/kotlin/LocalHost.kt
 
 object LocalHost {
 
-    sealed class SocketConfig(val protocolFamily: ProtocolFamily, val param: Param) {
+    sealed class SocketConfig(val protocolFamily: java.net.ProtocolFamily, val param: Param) {
         val byteBufferInputSize = param.byteBufferInputSize
         val timeoutSecondsOfWaitClientConnection = param.timeoutSecondsOfWaitClientConnection
         val acceptClientConnectionCount = param.acceptClientConnectionCount
 
-        abstract val address: SocketAddress
-        abstract fun desccription(): String
+        abstract val address: java.net.SocketAddress
+        abstract fun description(): String
         open fun onFinally() {}
 
-        sealed class TCP(val port: Int, param: Param) :
-            SocketConfig(StandardProtocolFamily.INET, param) {
+        sealed class TCP(val port: Int, param: Param) : SocketConfig(java.net.StandardProtocolFamily.INET, param) {
 
             class LocalHost(port: Int, param: Param = default) : TCP(port, param) {
-                override val address by lazy { InetSocketAddress(Inet4Address.getLoopbackAddress(), port) }
-                override fun desccription() = "tcp: 127.0.0.1:$port"
+                override val address by lazy { java.net.InetSocketAddress(java.net.Inet4Address.getLoopbackAddress(), port) }
+                override fun description() = "tcp: 127.0.0.1:$port"
             }
         }
 
-        class UDS(val path: String, param: Param = default) :
-            SocketConfig(StandardProtocolFamily.UNIX, param) {
-            override val address by lazy { UnixDomainSocketAddress.of(path) }
-            override fun desccription() = "uds: $path"
+        class UDS(val path: String, param: Param = default) : SocketConfig(java.net.StandardProtocolFamily.UNIX, param) {
+            override val address by lazy { java.net.UnixDomainSocketAddress.of(path) }
+            override fun description() = "uds: $path"
             override fun onFinally() {
-                Files.deleteIfExists(address.path)
+                java.nio.file.Files.deleteIfExists(address.path)
             }
         }
 
@@ -66,11 +57,26 @@ object LocalHost {
             fun tcp(port: Int, param: Param = default) = TCP.LocalHost(port, param)
             fun uds(path: String, param: Param = default) = UDS(path, param)
 
-            fun SocketConfig.listen(block: Runtime.() -> Unit) = listen(this, block)
-
-            @Suppress("NOTHING_TO_INLINE")
-            inline fun SocketConfig.send(str: String) = send(this, str)
+            fun instanceWithUpdatedParams(socketConfig: SocketConfig, param: Param): SocketConfig {
+                val result = when (socketConfig) {
+                    is UDS -> UDS(socketConfig.path, param)
+                    is TCP.LocalHost -> TCP.LocalHost(socketConfig.port, param)
+                }
+                return result
+            }
         }
+
+        fun params(
+            byteBufferInputSize: Int = default.byteBufferInputSize,
+            timeoutSecondsOfWaitClientConnection: Int = default.timeoutSecondsOfWaitClientConnection,
+            acceptClientConnectionCount: Int = default.acceptClientConnectionCount,
+        ) = instanceWithUpdatedParams(this, Param(byteBufferInputSize, timeoutSecondsOfWaitClientConnection, acceptClientConnectionCount))
+
+        @Suppress("NOTHING_TO_INLINE")
+        inline fun listen(noinline block: Runtime.() -> Unit) = listen(this, block)
+
+        @Suppress("NOTHING_TO_INLINE")
+        inline fun send(str: String) = send(this, str)
     }
 
     val tcp get() = SocketConfig.defaultTCP
@@ -82,34 +88,20 @@ object LocalHost {
 
     fun uds(suffix: Int) = SocketConfig.UDS(tmpUdsFilePath(suffix))
 
-    fun tmpUdsFilePath(suffix: Int) = tmpUdsFilePath("$suffix")
+    fun tmpUdsFilePath(suffix: Int) = tmpUdsFilePath(suffix.toString())
 
     fun tmpUdsFilePath(suffix: String) = "/var/run/user/1001/uds_tmp_$suffix"
-
-    inline fun <reified T : SocketConfig> T.params(
-        byteBufferInputSize: Int = SocketConfig.default.byteBufferInputSize,
-        timeoutSecondsOfWaitClientConnection: Int = SocketConfig.default.timeoutSecondsOfWaitClientConnection,
-        acceptClientConnectionCount: Int = SocketConfig.default.acceptClientConnectionCount,
-    ): T {
-        val param = SocketConfig.Param(byteBufferInputSize, timeoutSecondsOfWaitClientConnection, acceptClientConnectionCount)
-        val result = when (this) {
-            is SocketConfig.UDS -> SocketConfig.UDS(path, param)
-            is SocketConfig.TCP.LocalHost -> SocketConfig.TCP.LocalHost(port, param)
-            else -> TODO()
-        }
-        return result as T
-    }
 
     fun socketListen(block: SocketConfig.Runtime.() -> Unit) = listen(SocketConfig.defaultUDS, block)
 
     fun listen(socketConfig: SocketConfig, block: SocketConfig.Runtime.() -> Unit) {
-        println("LocalHost.listen on ${socketConfig.desccription()}")
+        println("LocalHost.listen on ${socketConfig.description()}")
         try {
-            ServerSocketChannel.open(socketConfig.protocolFamily).use { serverSocketChannel ->
+            java.nio.channels.ServerSocketChannel.open(socketConfig.protocolFamily).use { serverSocketChannel ->
                 serverSocketChannel.bind(socketConfig.address)
                 for (connectionCount in 0 until socketConfig.acceptClientConnectionCount) {
                     serverSocketChannel.accept().use { socketChannel ->
-                        val byteBufferIn = ByteBuffer.allocate(socketConfig.byteBufferInputSize)
+                        val byteBufferIn = java.nio.ByteBuffer.allocate(socketConfig.byteBufferInputSize)
                         val readByteCount = socketChannel.read(byteBufferIn)
                         if (readByteCount > 0) {
                             val byteArrayIn = ByteArray(readByteCount)
@@ -122,7 +114,7 @@ object LocalHost {
                                 msg = strIn,
                                 param = socketConfig.param
                             ) { strOut = it }.block()
-                            val byteBufferOut = ByteBuffer.wrap(strOut.toByteArray())
+                            val byteBufferOut = java.nio.ByteBuffer.wrap(strOut.toByteArray())
                             socketChannel.write(byteBufferOut)
                         }
                     }
@@ -136,10 +128,10 @@ object LocalHost {
     fun socketSend(str: String): String = send(SocketConfig.defaultUDS, str)
 
     fun send(socketConfig: SocketConfig, str: String): String {
-        SocketChannel.open(socketConfig.address).use { socketChannel ->
-            val buf = ByteBuffer.wrap(str.toByteArray())
+        java.nio.channels.SocketChannel.open(socketConfig.address).use { socketChannel ->
+            val buf = java.nio.ByteBuffer.wrap(str.toByteArray())
             socketChannel.write(buf)
-            val byteBufferIn = ByteBuffer.allocate(socketConfig.byteBufferInputSize)
+            val byteBufferIn = java.nio.ByteBuffer.allocate(socketConfig.byteBufferInputSize)
             val readByteCount = socketChannel.read(byteBufferIn)
             if (readByteCount > 0) {
                 val byteArrayIn = ByteArray(readByteCount)

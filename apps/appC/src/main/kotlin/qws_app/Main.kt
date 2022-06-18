@@ -1,8 +1,6 @@
 package qws_app
 
-import qws_local_host.LocalHost
-import qws_local_host.LocalHost.SocketConfig.Companion.listen
-import qws_local_host.LocalHost.params
+import LocalHost
 import kotlin.system.measureTimeMillis
 
 fun main(@Suppress("UNUSED_PARAMETER") args: Array<String>) {

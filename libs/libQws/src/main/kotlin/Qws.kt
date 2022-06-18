@@ -1,11 +1,6 @@
+// libs/libQws/src/main/kotlin/Qws.kt
 //
 //
-//
-
-import qws_local.ApplicationInstance
-import qws_local.ProjectInstance
-import qws_local.QwsLocal
-import qws_local.QwsUtilsAll
 
 open class Qws(val app: QwsLocal.Application, val prj: QwsLocal.Project, val logger: QwsLocal.Logger) {
     @Suppress("ClassName")
@@ -27,4 +22,8 @@ open class Qws(val app: QwsLocal.Application, val prj: QwsLocal.Project, val log
 
     @Suppress("NOTHING_TO_INLINE")
     inline infix fun err(any: Any?) = logger.err(any)
+
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun simpleScript(args: Array<String>, noinline block: QWS.SimpleScript.Runtime.() -> Unit) = QWS.SimpleScript.simpleScript(args, block)
+
 }

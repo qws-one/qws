@@ -2,9 +2,6 @@
 //
 //
 
-import qws_local.ApplicationInstance
-import qws_local.ProjectInstance
-
 @Suppress("ClassName", "unused")
 object qws : Qws(
         utils.run {

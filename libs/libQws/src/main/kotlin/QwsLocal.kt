@@ -1,5 +1,4 @@
-package qws_local
-//
+// libs/libQws/src/main/kotlin/QwsLocal.kt
 //
 //
 
