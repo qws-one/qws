@@ -17,7 +17,9 @@
             <option value="$PROJECT_DIR$/apps/appA_run1" />
             <option value="$PROJECT_DIR$/apps/appA_run2" />
             <option value="$PROJECT_DIR$/apps/appB" />
+            <option value="$PROJECT_DIR$/apps/appC" />
             <option value="$PROJECT_DIR$/libs" />
+            <option value="$PROJECT_DIR$/libs/libLocalHost" />
             <option value="$PROJECT_DIR$/libs/libQws" />
             <option value="$PROJECT_DIR$/libs/libQwsEmptyImpl" />
           </set>
