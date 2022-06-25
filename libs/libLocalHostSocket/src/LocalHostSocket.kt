@@ -1,6 +1,6 @@
 // libs/libLocalHost/src/main/kotlin/LocalHost.kt
 
-object LocalHost {
+object LocalHostSocket {
 
     sealed class SocketConfig(val protocolFamily: java.net.ProtocolFamily, val param: Param) {
         val byteBufferInputSize = param.byteBufferInputSize
@@ -58,9 +58,11 @@ object LocalHost {
             fun uds(path: String, param: Param = default) = UDS(path, param)
 
             fun instanceWithUpdatedParams(socketConfig: SocketConfig, param: Param): SocketConfig {
+                @Suppress("REDUNDANT_ELSE_IN_WHEN")
                 val result = when (socketConfig) {
                     is UDS -> UDS(socketConfig.path, param)
                     is TCP.LocalHost -> TCP.LocalHost(socketConfig.port, param)
+                    else -> TODO()
                 }
                 return result
             }

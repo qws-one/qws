@@ -19,7 +19,7 @@ val res = ${ktFile.nameWithoutExtension}.main(arrayOf("${ktFile.absolutePath}"))
   println("bindings=${'$'}{bindings.keys}")
 res
     """
-    val res = LocalHost.uds(chanelId).send(script)
+    val res = LocalHostSocket.uds(chanelId).send(script)
 
     println("run result  '$res'")
 }

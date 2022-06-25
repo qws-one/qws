@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SimpleScriptIdeMain" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="SimpleScriptIdeMainKt" />
+    <module name="qws.apps.appPlainIde.main" />
+    <option name="PROGRAM_PARAMETERS" value="apps/appPlainIde/src/main/kotlin/SimpleScriptIdeMain.kt" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

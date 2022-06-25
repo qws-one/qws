@@ -18,10 +18,19 @@
             <option value="$PROJECT_DIR$/apps/appA_run2" />
             <option value="$PROJECT_DIR$/apps/appB" />
             <option value="$PROJECT_DIR$/apps/appC" />
+            <option value="$PROJECT_DIR$/apps/appPlainIde" />
             <option value="$PROJECT_DIR$/libs" />
-            <option value="$PROJECT_DIR$/libs/libLocalHost" />
+            <option value="$PROJECT_DIR$/libs/libLocalHostSocket" />
             <option value="$PROJECT_DIR$/libs/libQws" />
             <option value="$PROJECT_DIR$/libs/libQwsEmptyImpl" />
+            <option value="$PROJECT_DIR$/libs/libSimpleScript" />
+            <option value="$PROJECT_DIR$/tools" />
+            <option value="$PROJECT_DIR$/tools/tool4TypeAlias4IdeLib" />
+            <option value="$PROJECT_DIR$/tools/tool4config" />
+            <option value="$PROJECT_DIR$/tools/toolPlainIdeListener" />
+            <option value="$PROJECT_DIR$/tools/toolPlainTypeAliasIdeListener" />
+            <option value="$PROJECT_DIR$/tools/toolRegisterAction" />
+            <option value="$PROJECT_DIR$/tools/toolSimpleScriptIdeListener" />
           </set>
         </option>
       </GradleProjectSettings>

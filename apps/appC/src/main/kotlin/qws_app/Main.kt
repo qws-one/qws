@@ -1,6 +1,6 @@
 package qws_app
 
-import LocalHost
+import LocalHostSocket
 import kotlin.system.measureTimeMillis
 
 fun main(@Suppress("UNUSED_PARAMETER") args: Array<String>) {
@@ -17,7 +17,7 @@ fun main(@Suppress("UNUSED_PARAMETER") args: Array<String>) {
     }
     println("<top>.main $t")
 
-    LocalHost.uds.params(acceptClientConnectionCount = Int.MAX_VALUE).listen {
+    LocalHostSocket.uds.params(acceptClientConnectionCount = Int.MAX_VALUE).listen {
         println("<top>.main msg='$msg' $connectionIndex, $param")
         val res = engine.eval(msg)
         result("OK $connectionIndex\n$res")

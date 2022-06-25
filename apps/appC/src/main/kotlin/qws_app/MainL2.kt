@@ -1,6 +1,5 @@
 import qws_app.KtsEngine
 import qws_app.KtsEngineForRun
-import LocalHost.tmpUdsFilePath
 import javax.script.ScriptEngineManager
 import javax.script.ScriptException
 import kotlin.system.measureTimeMillis
@@ -28,12 +27,12 @@ object MainL2 {
 
         println("L2 $t1 $t2 $t3 ${t1 + t2 + t3}")
 
-        val socketConfig = LocalHost.uds(udsSuffix).params(
+        val socketConfig = LocalHostSocket.uds(udsSuffix).params(
             byteBufferInputSize = 1024,
             acceptClientConnectionCount = 3,
         )
 
-        LocalHost.listen(socketConfig) {
+        LocalHostSocket.listen(socketConfig) {
             println("L2 msg.length='${msg.length}' index=$connectionIndex, $param")
             val res = try {
                 engine.eval(msg)

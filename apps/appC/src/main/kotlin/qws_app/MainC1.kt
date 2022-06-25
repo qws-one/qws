@@ -11,7 +11,7 @@ ${ktFile.readText()}
 val res = ${name}.go()
 println("script run result '${'$'}res'")
     """
-        val res = LocalHost.uds(MainL1.udsSuffix).send(script)
+        val res = LocalHostSocket.uds(MainL1.udsSuffix).send(script)
 
         println("<top>.runKtFile '$res'")
     }

@@ -5,5 +5,5 @@ plugins {
 dependencies {
     implementation(project(":libs:libQws"))
     implementation(project(":libs:libQwsEmptyImpl"))
-    implementation(project(":libs:libLocalHost"))
+    implementation(project(":libs:libLocalHostSocket"))
 }

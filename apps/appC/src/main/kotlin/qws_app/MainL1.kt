@@ -16,7 +16,7 @@ object MainL1 {
         }
 
         println("L1 $t1")
-        LocalHost.uds(udsSuffix).params(acceptClientConnectionCount = Int.MAX_VALUE).listen {
+        LocalHostSocket.uds(udsSuffix).params(acceptClientConnectionCount = Int.MAX_VALUE).listen {
             println("L1 msg.length='${msg.length}' index=$connectionIndex, $param")
             val res = try {
                 engine.eval(msg)

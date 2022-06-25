@@ -13,7 +13,7 @@ object MainKtsC2C1 {
         }
 
         val t2 = measureTimeMillis {
-            val res = LocalHost.uds(MainL1.udsSuffix).params().send("10+5")
+            val res = LocalHostSocket.uds(MainL1.udsSuffix).params().send("10+5")
             println("from 'println' ktsName=$ktsName res='''$res'''")
             qws out ("from 'qws out' ktsName=$ktsName res=''''$res''''")
         }
