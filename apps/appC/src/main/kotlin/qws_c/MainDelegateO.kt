@@ -4,29 +4,28 @@ import J0
 import J00
 import J000
 import J1
-import QwsReflect
 
 
 object MainDelegateO {
-    val qwsReflectCValue = QwsReflect.Value.Companion
+    val qwsReflectCValue = SimpleReflect.Value.Companion
 
     val j0 = J0()
     val j00 = J00()
     val j000 = J000()
 
-    class KJ0a(jObj: Any) : QwsReflect.Delegate.Base(jObj) {
-        val f0 by QwsReflect.Delegate.C<J1>()
+    class KJ0a(jObj: Any) : SimpleReflect.Delegate.Base(jObj) {
+        val f0 by SimpleReflect.Delegate.C<J1>()
     }
 
-    class RJ0b(jObj: Any) : QwsReflect.Delegate.Base(jObj) {
-        val f0 by QwsReflect.Delegate.R { RJ1(it) }
+    class RJ0b(jObj: Any) : SimpleReflect.Delegate.Base(jObj) {
+        val f0 by SimpleReflect.Delegate.R { RJ1(it) }
 
-        class RJ1(jObj: Any) : QwsReflect.Delegate.Base(jObj) {
-            val f1 by QwsReflect.Delegate.C<String>()
-            val f2 by QwsReflect.Delegate.R { RJ2(it) }
+        class RJ1(jObj: Any) : SimpleReflect.Delegate.Base(jObj) {
+            val f1 by SimpleReflect.Delegate.C<String>()
+            val f2 by SimpleReflect.Delegate.R { RJ2(it) }
 
-            class RJ2(jObj: Any) : QwsReflect.Delegate.Base(jObj) {
-                val fOfJ2 by QwsReflect.Delegate.C<Int>()
+            class RJ2(jObj: Any) : SimpleReflect.Delegate.Base(jObj) {
+                val fOfJ2 by SimpleReflect.Delegate.C<Int>()
             }
         }
     }

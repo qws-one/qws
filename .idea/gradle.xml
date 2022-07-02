@@ -12,6 +12,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app_init" />
             <option value="$PROJECT_DIR$/apps" />
             <option value="$PROJECT_DIR$/apps/appA" />
             <option value="$PROJECT_DIR$/apps/appA_run1" />
@@ -20,16 +21,28 @@
             <option value="$PROJECT_DIR$/apps/appC" />
             <option value="$PROJECT_DIR$/apps/appPlainIde" />
             <option value="$PROJECT_DIR$/libs" />
-            <option value="$PROJECT_DIR$/libs/libLocalHostSocket" />
+            <option value="$PROJECT_DIR$/libs/LocalHostSocket" />
+            <option value="$PROJECT_DIR$/libs/SimpleReflect" />
+            <option value="$PROJECT_DIR$/libs/SimpleScript" />
+            <option value="$PROJECT_DIR$/libs/Util" />
             <option value="$PROJECT_DIR$/libs/libQws" />
             <option value="$PROJECT_DIR$/libs/libQwsEmptyImpl" />
-            <option value="$PROJECT_DIR$/libs/libSimpleScript" />
             <option value="$PROJECT_DIR$/tools" />
-            <option value="$PROJECT_DIR$/tools/tool4TypeAlias4IdeLib" />
-            <option value="$PROJECT_DIR$/tools/tool4config" />
+            <option value="$PROJECT_DIR$/tools/Config" />
+            <option value="$PROJECT_DIR$/tools/Module" />
+            <option value="$PROJECT_DIR$/tools/RunSimpleScript" />
+            <option value="$PROJECT_DIR$/tools/ide" />
+            <option value="$PROJECT_DIR$/tools/ide/ActionRegister" />
+            <option value="$PROJECT_DIR$/tools/ide/Lib" />
+            <option value="$PROJECT_DIR$/tools/ide/TypeAlias" />
+            <option value="$PROJECT_DIR$/tools/ide/action" />
+            <option value="$PROJECT_DIR$/tools/ide/action/KtsListener" />
+            <option value="$PROJECT_DIR$/tools/ide/script" />
+            <option value="$PROJECT_DIR$/tools/ide/script/two" />
+            <option value="$PROJECT_DIR$/tools/script" />
+            <option value="$PROJECT_DIR$/tools/script/one" />
             <option value="$PROJECT_DIR$/tools/toolPlainIdeListener" />
             <option value="$PROJECT_DIR$/tools/toolPlainTypeAliasIdeListener" />
-            <option value="$PROJECT_DIR$/tools/toolRegisterAction" />
             <option value="$PROJECT_DIR$/tools/toolSimpleScriptIdeListener" />
           </set>
         </option>

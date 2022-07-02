@@ -1,10 +1,11 @@
+//
 plugins {
     kotlin("jvm")
 }
-
-sourceSets.main { java.srcDirs("src") }
-
+//
 dependencies {
-    implementation(project(":tools:tool4config"))
-    implementation(project(":libs:libLocalHostSocket"))
+    implementation(project(":libs:LocalHostSocket"))
+    implementation(project(":tools:Config"))
 }
+//
+sourceSets.main { java.srcDirs("src") }

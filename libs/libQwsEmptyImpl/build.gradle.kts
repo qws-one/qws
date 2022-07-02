@@ -1,8 +1,10 @@
-
+//
 plugins {
     kotlin("jvm")
 }
-
-dependencies{
+//
+dependencies {
     implementation(project(":libs:libQws"))
 }
+//
+sourceSets.main { java.srcDirs("src") }
