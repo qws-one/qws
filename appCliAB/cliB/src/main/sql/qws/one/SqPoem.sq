@@ -1,0 +1,33 @@
+--
+
+CREATE TABLE sqPoem (
+  paragraphsListId INTEGER NOT NULL,
+  author TEXT NOT NULL,
+  title TEXT NOT NULL,
+  PRIMARY KEY(author, title),
+  UNIQUE(author, title)
+);
+
+
+insertPoem:
+INSERT OR IGNORE INTO sqPoem (paragraphsListId, title, author)
+VALUES (?, ?,?);
+
+selectAll:
+SELECT *
+FROM sqPoem ;
+
+selectByParagraphsListId:
+SELECT *
+FROM sqPoem
+WHERE paragraphsListId = :paragraphsListId;
+
+selectByAuthor:
+SELECT *
+FROM sqPoem
+WHERE author = :author;
+
+selectByTitle:
+SELECT *
+FROM sqPoem
+WHERE title = :title;

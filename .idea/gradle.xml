@@ -7,43 +7,75 @@
         <option name="delegatedBuild" value="true" />
         <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="LOCAL" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/appCli" />
         <option name="gradleHome" value="/opt/local/gradle" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/appCli" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="delegatedBuild" value="true" />
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/appCliA" />
+        <option name="gradleHome" value="/opt/local/gradle" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/appCliA" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="delegatedBuild" value="true" />
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/appCliAB" />
+        <option name="gradleHome" value="/opt/local/gradle" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/appCliAB" />
+            <option value="$PROJECT_DIR$/appCliAB/appA" />
+            <option value="$PROJECT_DIR$/appCliAB/cliB" />
+            <option value="$PROJECT_DIR$/appCliAB/libA" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="delegatedBuild" value="true" />
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/app_init" />
+        <option name="gradleHome" value="/opt/local/gradle" />
+        <option name="modules">
+          <set>
             <option value="$PROJECT_DIR$/app_init" />
-            <option value="$PROJECT_DIR$/apps" />
-            <option value="$PROJECT_DIR$/apps/appA" />
-            <option value="$PROJECT_DIR$/apps/appA_run1" />
-            <option value="$PROJECT_DIR$/apps/appA_run2" />
-            <option value="$PROJECT_DIR$/apps/appB" />
-            <option value="$PROJECT_DIR$/apps/appC" />
-            <option value="$PROJECT_DIR$/apps/appPlainIde" />
-            <option value="$PROJECT_DIR$/libs" />
-            <option value="$PROJECT_DIR$/libs/LocalHostSocket" />
-            <option value="$PROJECT_DIR$/libs/SimpleReflect" />
-            <option value="$PROJECT_DIR$/libs/SimpleScript" />
-            <option value="$PROJECT_DIR$/libs/Util" />
-            <option value="$PROJECT_DIR$/libs/libQws" />
-            <option value="$PROJECT_DIR$/libs/libQwsEmptyImpl" />
-            <option value="$PROJECT_DIR$/tools" />
-            <option value="$PROJECT_DIR$/tools/Config" />
-            <option value="$PROJECT_DIR$/tools/Module" />
-            <option value="$PROJECT_DIR$/tools/RunSimpleScript" />
-            <option value="$PROJECT_DIR$/tools/ide" />
-            <option value="$PROJECT_DIR$/tools/ide/ActionRegister" />
-            <option value="$PROJECT_DIR$/tools/ide/Lib" />
-            <option value="$PROJECT_DIR$/tools/ide/TypeAlias" />
-            <option value="$PROJECT_DIR$/tools/ide/action" />
-            <option value="$PROJECT_DIR$/tools/ide/action/KtsListener" />
-            <option value="$PROJECT_DIR$/tools/ide/script" />
-            <option value="$PROJECT_DIR$/tools/ide/script/two" />
-            <option value="$PROJECT_DIR$/tools/script" />
-            <option value="$PROJECT_DIR$/tools/script/one" />
-            <option value="$PROJECT_DIR$/tools/toolPlainIdeListener" />
-            <option value="$PROJECT_DIR$/tools/toolPlainTypeAliasIdeListener" />
-            <option value="$PROJECT_DIR$/tools/toolSimpleScriptIdeListener" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="delegatedBuild" value="true" />
+        <option name="testRunner" value="CHOOSE_PER_TEST" />
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/appsSetQws" />
+        <option name="gradleHome" value="/opt/local/gradle" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/appsSetQws" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="delegatedBuild" value="true" />
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/tempApp" />
+        <option name="gradleHome" value="/opt/local/gradle" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/tempApp" />
+            <option value="$PROJECT_DIR$/tempApp/tempA" />
           </set>
         </option>
       </GradleProjectSettings>

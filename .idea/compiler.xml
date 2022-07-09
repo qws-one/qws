@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="17" />
+    <bytecodeTargetLevel target="1.6">
+      <module name="appCliA.cli" target="17" />
+      <module name="appCliA.cli.main" target="17" />
+      <module name="appCliA.cli.test" target="17" />
+      <module name="tempApp" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

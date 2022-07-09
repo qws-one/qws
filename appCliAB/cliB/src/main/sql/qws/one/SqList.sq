@@ -1,0 +1,27 @@
+--
+
+import kotlin.collections.List;
+
+CREATE TABLE sqListOfLong (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  listIds TEXT AS List<String> NOT NULL,
+  UNIQUE( listIds)
+);
+
+insertList:
+INSERT OR IGNORE INTO sqListOfLong (listIds)
+VALUES (?);
+
+selectAll:
+SELECT *
+FROM sqListOfLong ;
+
+selectById:
+SELECT *
+FROM sqListOfLong
+WHERE id = :id;
+
+selectByListIds:
+SELECT *
+FROM sqListOfLong
+WHERE listIds = :listIds;

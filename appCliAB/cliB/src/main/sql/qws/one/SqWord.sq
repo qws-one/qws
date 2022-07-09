@@ -1,0 +1,48 @@
+--
+-- https://cashapp.github.io/sqldelight/jvm_sqlite/types/
+-- https://cashapp.github.io/sqldelight/jvm_sqlite/transactions/
+-- https://cashapp.github.io/sqldelight/native_sqlite/types/#custom-column-types
+-- https://cashapp.github.io/sqldelight/js_sqlite/types/
+--
+-- https://www.w3resource.com/sqlite/sqlite-insert-into.php
+--
+-- https://www.sqlite.org/lang_createtable.html
+-- https://www.sqlite.org/datatype3.html
+--
+-- https://www.sqlitetutorial.net/sqlite-primary-key/
+-- https://www.sqlitetutorial.net/sqlite-sample-database/
+-- https://www.sqlitetutorial.net/sqlite-insert/
+--
+-- https://sqlitebrowser.org/
+--
+
+CREATE TABLE sqWord (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  text TEXT NOT NULL,
+  UNIQUE( text)
+);
+
+insertWord:
+INSERT OR IGNORE INTO sqWord (text)
+VALUES (?);
+
+maxWordAndGet :
+SELECT MAX(id) FROM sqWord;
+
+selectWithMaxId:
+SELECT * FROM sqWord
+WHERE id = (SELECT MAX(id) FROM sqWord);
+
+selectAll:
+SELECT *
+FROM sqWord ;
+
+selectById:
+SELECT *
+FROM sqWord
+WHERE id = :id;
+
+selectByText:
+SELECT *
+FROM sqWord
+WHERE text = :text;
