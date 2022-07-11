@@ -155,7 +155,7 @@ $dependencies_src_txt
             @Suppress("SpellCheckingInspection")
             fun buildGradleInitialContent(plugins: List<String> = emptyList()) = """
 plugins {
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.7.10"
 ${plugins.joinWithTab()}}
 ${if (extBuildDir) "val buildPlace by extra(file(\"$gradle_build_place_txt\").readLines().first())" else ""}
 allprojects {
@@ -482,7 +482,6 @@ object $name {
 
         companion object {
             fun localTool(toolsHolder: Tools.Holder) = Tools(toolsHolder)
-
             fun <AC : appsBase> AC.configure(projectDir: JvmFile, block: AC.() -> Unit) {
                 toolsHolder.tools = lib.tools(AppsPlace.from(projectDir, javaClass.simpleName), mapOfProjects) {}
                 block()
@@ -579,8 +578,10 @@ idea.project.settings { //https://github.com/JetBrains/gradle-idea-ext-plugin/wi
 //        lib.tools(AppsPlace.from(placeDir, "appsSetQws"), map = root.mapOfProjects) { build_gradle(); settings_gradle() }
 //        app(AppsPlace.from(placeDir, "appCli")).configure { }
 //        appCliA.configure(placeDir) { }
-
-//        appCliAB.configure(placeDir) { localBuildDir(); active(appA, cliB) }
+        with(appsBase){
+            appCliAB.configure(placeDir) {  active(appA, cliB) }
+        }
+        //appCliAB.configure(placeDir) { localBuildDir(); active(appA, cliB) }
 
 //        tempApp.configure(placeDir) { localBuildDir(); active(tempA) }
     }

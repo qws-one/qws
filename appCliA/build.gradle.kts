@@ -1,6 +1,6 @@
 
 plugins {
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.7.10"
 }
 val buildPlace by extra(file("gradle.build.place.txt").readLines().first())
 allprojects {

@@ -4,7 +4,7 @@ import org.jetbrains.gradle.ext.ActionDelegationConfig.TestRunner.CHOOSE_PER_TES
 import org.jetbrains.gradle.ext.EncodingConfiguration.BomPolicy
 
 plugins {
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.7.10"
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.5"
 }
 val buildPlace by extra(file("gradle.build.place.txt").readLines().first())
