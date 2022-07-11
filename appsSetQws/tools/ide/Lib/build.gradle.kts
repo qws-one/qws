@@ -4,4 +4,4 @@ plugins {
 dependencies {
     implementation(project(":tools:ide:TypeAlias"))
 }
-sourceSets.main { java.srcDirs("src_main") }
+sourceSets.main { java.srcDirs("src_main", "src_module_info") }

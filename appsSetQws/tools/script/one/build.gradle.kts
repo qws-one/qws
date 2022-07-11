@@ -10,4 +10,4 @@ dependencies {
     implementation(project(":tools:Module"))
     implementation(project(":tools:RunSimpleScript"))
 }
-sourceSets.main { java.srcDirs("src_main", "src_one") }
+sourceSets.main { java.srcDirs("src_main", "src_module_info", "src_one") }

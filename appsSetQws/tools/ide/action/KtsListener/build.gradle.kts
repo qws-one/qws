@@ -12,4 +12,4 @@ dependencies {
     implementation(project(":tools:ide:Lib"))
     implementation(project(":tools:ide:TypeAlias"))
 }
-sourceSets.main { java.srcDirs("src_main", "src_one") }
+sourceSets.main { java.srcDirs("src_main", "src_module_info", "src_one") }

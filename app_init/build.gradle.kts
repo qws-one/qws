@@ -1,7 +1,5 @@
 @file:Suppress("RemoveRedundantQualifierName")
 
-import Build_gradle.BuildDesc.appsBase.Companion.configure
-
 typealias JvmFile = java.io.File
 
 //@Suppress("ClassName", "MemberVisibilityCanBePrivate", "unused", "LocalVariableName", "FunctionName")
@@ -80,11 +78,12 @@ object BuildDesc {
             val SubProject.relativePlace get() = "${placeDir.name}/${path()}".replace("//", "/").replace("//", "/")
             fun SubProject.relativePlace(path: String) = "${relativePlace}/$path".replace("//", "/")
 
+            var extBuildDir = true
+
             init {
                 block()
             }
 
-            var extBuildDir = true
             override fun localBuildDir() {
                 extBuildDir = false
             }
@@ -112,6 +111,7 @@ object BuildDesc {
                 if (emptyFile != appsPlace.gradleBuildPlaceConfTxt) {
                     file(placeDir, gradle_build_place_txt) update appsPlace.gradleBuildPlaceConfTxt.readText() + "/${appsPlace.name}-${placeDir.name}"
                 }
+                //println("tools.buildGradle extBuildDir=$extBuildDir")
                 file(placeDir, build_gradle_kts) update imports + buildGradleInitialContent(plugins) + plus
                 file(placeDir, ".gitignore") update """
 /.gradle/
@@ -204,7 +204,8 @@ ${if (extBuildDir) "    buildDir = file(buildPlace + path.replace(':', '/')+\"/b
 // sh -c 'cd .../${prj.relativePlace} && /opt/local/gradle/bin/gradle run'
 """
                 }
-                prj.srcDirs().forEach { prj.place(it).mkdirs() }
+                //prj.srcDirs().forEach { prj.place(it).let { dir -> if (dir.name != src_module_info) dir.mkdirs() } }
+                prj.srcDirs().forEach { if (it != src_module_info) prj.place(it).mkdirs() }
                 prj.place(build_gradle_kts) update """$imports
 plugins {
     kotlin("jvm")
@@ -249,9 +250,11 @@ $applicationConf""".trim()
 
             private fun moduleInfo(prj: SubProject) = "ModuleInfo".let { name ->
                 prj.conf.implementation(root.tools.Module)
-                file(placeDir, "${prj.pathOfKotlinSrcDir()}/$name.kt").update(
+                //file(placeDir, "${prj.pathOfKotlinSrcDir()}/$name.kt").apply { if (exists()) delete() }
+                file(placeDir, "${prj.pathOfModuleInfoSrcDir()}/$name.kt").update(
                     """
 object $name : ModuleUtil.Info {
+    override val appsSetName = "${placeDir.name}"
     override val name = "${prj.name}"
     override val srcDirsCsv = "${prj.srcDirs().joinToString(",")}"
     override val relativePath = "${prj.moduleRelativePath()}"
@@ -279,7 +282,7 @@ object $name {
             }
         }
 
-        class ProjectDelegate(val map: MutableMap<String, SubProject>, val conf: Conf, val block: Conf.() -> Unit) {
+        class SubProjectDelegate(val map: MutableMap<String, SubProject>, val conf: Conf, val block: Conf.() -> Unit) {
             operator fun getValue(thisRef: Any, property: kotlin.reflect.KProperty<*>): SubProject {
                 val className = thisRef::class.java.name ?: TODO("... for BuildDesc")
                 val c = '$'
@@ -302,7 +305,8 @@ object $name {
         val srcDirsStandard get() = conf is ConfFresh || conf.srcDirs == src_main_kotlin_and_java
         val slash = "/"
         fun path() = "${slash}${path.joinToString(slash)}$slash$name$slash"
-        fun pathOfKotlinSrcDir() = "${slash}${path.joinToString(slash)}$slash$name$slash${conf.srcDirs[0]}"
+        fun pathOfKotlinSrcDir() = "${path.joinToString(slash)}$slash$name$slash${conf.srcDirs[0]}"
+        fun pathOfModuleInfoSrcDir() = "${path.joinToString(slash)}$slash$name$slash${src_module_info}"
         fun pathSrcDirs(): List<String> = conf.srcDirs.map {
             "${moduleRelativePath()}$slash${it}"
         }
@@ -341,7 +345,9 @@ object $name {
 
     const val src_main_java = "src/main/java"
     const val src_main_kotlin = "src/main/kotlin"
-    val src_folder = listOf("src_main")
+    const val src_main = "src_main"
+    const val src_module_info = "src_module_info"
+    val src_folder = listOf(src_main, src_module_info)
     val src_main_kotlin_and_java = listOf(src_main_kotlin, src_main_java)
 
     class ConfFresh : Conf(listOf(src_main_kotlin))
@@ -362,9 +368,9 @@ object $name {
 
         @Suppress("UNCHECKED_CAST")
         inline fun projectConf(srcDirs: List<String>, noinline block: ConfC.() -> Unit) =
-            lib.ProjectDelegate(mapOfProjects, ConfC(srcDirs), block as Conf.() -> Unit)
+            lib.SubProjectDelegate(mapOfProjects, ConfC(srcDirs), block as Conf.() -> Unit)
 
-        inline fun <reified T : Conf> projectConf(noinline block: T.() -> Unit): lib.ProjectDelegate {
+        inline fun <reified T : Conf> projectConf(noinline block: T.() -> Unit): lib.SubProjectDelegate {
             val conf = when (T::class) {
                 ConfFresh::class -> ConfFresh()
                 ConfPlane::class -> ConfPlane()
@@ -375,10 +381,10 @@ object $name {
                 CliApp::class -> CliApp()
                 else -> TODO("... for BuildDesc")
             }
-            @Suppress("UNCHECKED_CAST") return lib.ProjectDelegate(mapOfProjects, conf, block as Conf.() -> Unit)
+            @Suppress("UNCHECKED_CAST") return lib.SubProjectDelegate(mapOfProjects, conf, block as Conf.() -> Unit)
         }
 
-        val projectConf get() = lib.ProjectDelegate(mapOfProjects, ConfPlane()) {}
+        val projectConf get() = lib.SubProjectDelegate(mapOfProjects, ConfPlane()) {}
     }
 
     object root : ProjectPlace(mutableMapOf()) {
@@ -567,12 +573,15 @@ idea.project.settings { //https://github.com/JetBrains/gradle-idea-ext-plugin/wi
 
     fun allInit(placeDir: JvmFile) {
         appsSetQwsInit(placeDir)
-        app(AppsPlace.from(placeDir, "appCli")).configure { active(cli) }
-        appCliA.configure(placeDir) { active(cliA) }
+//        app(AppsPlace.from(placeDir, "appCli")).configure { active(cli) }
+//        appCliA.configure(placeDir) { active(cliA) }
+
 //        lib.tools(AppsPlace.from(placeDir, "appsSetQws"), map = root.mapOfProjects) { build_gradle(); settings_gradle() }
 //        app(AppsPlace.from(placeDir, "appCli")).configure { }
 //        appCliA.configure(placeDir) { }
-        appCliAB.configure(placeDir) { localBuildDir(); active(appA, cliB) }
+
+//        appCliAB.configure(placeDir) { localBuildDir(); active(appA, cliB) }
+
 //        tempApp.configure(placeDir) { localBuildDir(); active(tempA) }
     }
 

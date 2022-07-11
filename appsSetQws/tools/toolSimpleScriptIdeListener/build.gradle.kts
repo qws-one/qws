@@ -5,4 +5,4 @@ dependencies {
     implementation(project(":libs:LocalHostSocket"))
     implementation(project(":tools:Config"))
 }
-sourceSets.main { java.srcDirs("src_main") }
+sourceSets.main { java.srcDirs("src_main", "src_module_info") }
