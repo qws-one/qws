@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/app__init/app__init.iml" filepath="$PROJECT_DIR$/app__init/app__init.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/appsPlace.iml" filepath="$PROJECT_DIR$/.idea/appsPlace.iml" />
     </modules>
   </component>

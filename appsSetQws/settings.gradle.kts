@@ -1,3 +1,4 @@
+rootProject.buildFileName = ".root.gradle.kts"
 include(":apps:appA")
 include(":apps:appA_run1")
 include(":apps:appA_run2")
@@ -21,4 +22,4 @@ include(":tools:ide:script:two")
 include(":tools:script:one")
 include(":tools:toolPlainIdeListener")
 include(":tools:toolPlainTypeAliasIdeListener")
-include(":tools:toolSimpleScriptIdeListener")
+include(":tools:toolSimpleScriptIdeListener") 
