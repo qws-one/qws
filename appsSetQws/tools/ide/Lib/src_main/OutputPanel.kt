@@ -1,13 +1,12 @@
-class OutputPanel(val projectName: String, val descriptor: IdeRunContentDescriptor, val descriptorDisplayName: String, val type: Type) {
+class OutputPanel(val projectName: String, val descriptor: IdeRunContentDescriptor, val descriptorDisplayName: String, val type: Type) : PrintLine {
     enum class Type(val executor: () -> IdeExecutor) {
         Run({ IdeDefaultRunExecutor.getRunExecutorInstance() }),
         Dbg({ IdeDefaultDebugExecutor.getDebugExecutorInstance() })
     }
 
-    interface Out {
+    interface Out : PrintLine {
         operator fun invoke(msg: Any?) = this.println(msg)
         infix fun print(msg: Any?)
-        infix fun println(msg: Any?)
     }
 
     private fun Any?.string() = (this?.toString() ?: "null")
@@ -16,6 +15,10 @@ class OutputPanel(val projectName: String, val descriptor: IdeRunContentDescript
     private fun Any?.stringln() = this.string() + "\n"
 
     private val consoleView get() = descriptor.executionConsole as? IdeConsoleView
+
+    override infix fun println(msg: Any?) {
+        consoleView?.print(msg.stringln(), IdeConsoleViewContentType.NORMAL_OUTPUT)
+    }
 
     val out = object : Out {
         override fun print(msg: Any?) {

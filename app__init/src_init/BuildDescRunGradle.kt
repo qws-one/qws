@@ -1,7 +1,7 @@
 //
 
 object BuildDescRunGradle {
-    private fun echo(dir: JvmFile, processId: Long?) = processId?.let {
+    fun echo(dir: JvmFile, processId: Long?) = processId?.let {
         println(dir)
         println(ProcessHandle.of(processId))
         ProcessHandle.of(processId).ifPresent { println(it.info()) }

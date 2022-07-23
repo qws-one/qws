@@ -3,6 +3,7 @@ buildscript {
         val ktsFile = file(it)
         val ktsStr = """
 ${file("../src_init/BuildDesc.kt").readText()}
+${file("../src_init/BuildDescConst.kt").readText()}
 tasks.register("appInit"){ doLast { BuildDesc.onAppInit(project.buildFile.absolutePath) } }
 """
         if (!ktsFile.exists() || ktsFile.readText() != ktsStr) {

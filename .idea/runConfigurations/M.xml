@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="M" type="JetRunConfigurationType" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="M" />
+    <module name="appsSetQws.tools.ide.script.two.main" />
+    <option name="PROGRAM_PARAMETERS" value="appsSetQws/tools/ide/script/two/src_one/M.kt" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

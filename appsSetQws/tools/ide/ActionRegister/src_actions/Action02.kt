@@ -15,7 +15,7 @@ object Action02 {
             ApplicationMgr.getApplication().runWriteAction { FileDocumentMgr.getInstance().saveAllDocuments() }
 
             val fileEditorManager = FileEditorMgrEx.getInstance(project) as FileEditorMgrEx
-            val currentFile = fileEditorManager.currentFile;
+            val currentFile = fileEditorManager.currentFile
 
             outputPanel.out println "from $id  ${Lib.debugLabel} $currentFile"
             outputPanel.toFrontRunContent()

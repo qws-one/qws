@@ -2,10 +2,11 @@
 
 @Suppress("unused")
 object ModuleUtil {
-    object Conf {
-        const val src = "src_main"
-        const val srcOne = "src_one"
-        const val srcInfo = "src_module_info"
+    class Place(val parent: Parent, val path: String) {
+        enum class Parent { Module, AppsSetPlace, AppsPlace, IdeScripting }
+
+        inline val isEmpty get() = this == emptyPlace
+        inline val isNotEmpty get() = !isEmpty
     }
 
     interface Info {
@@ -14,10 +15,14 @@ object ModuleUtil {
         val srcDirsCsv: String
         val relativePath: String
         val dependenciesSrcCsv: String
-        val relativePlace get() = "$appsSetName/$relativePath"
         val srcDirs get() = fromCsvLine(srcDirsCsv)
         val dependenciesSrc get() = fromCsvLine(dependenciesSrcCsv)
     }
 
     fun fromCsvLine(csvLine: String) = csvLine.split(',').map { it.trim() }
+    fun placeInModule(path: String) = Place(Place.Parent.Module, path)
+    fun placeInAppsSetPlace(path: String) = Place(Place.Parent.AppsSetPlace, path)
+    fun placeInAppsPlace(path: String) = Place(Place.Parent.AppsPlace, path)
+    fun placeInIdeScripting(path: String) = Place(Place.Parent.IdeScripting, path)
+    val emptyPlace = Place(Place.Parent.Module, "")
 }

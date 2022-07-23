@@ -1,4 +1,3 @@
-
 object LocalHostSocket {
 
     sealed class SocketConfig(val protocolFamily: java.net.ProtocolFamily, val param: Param) {
@@ -33,14 +32,14 @@ object LocalHostSocket {
         ) {
             companion object {
                 val default = Param(
-                    4096,
+                    65536, //4096,
                     240,
                     1,
                 )
             }
         }
 
-        class Runtime(val msg: String, val connectionIndex: Int, val param: Param, val result: (String) -> Unit)
+        class Runtime(val msg: String, val connectionIndex: Int, val param: Param, val closeChannel: () -> Unit, val result: (String) -> Unit)
         companion object {
             val default = Param()
 
@@ -109,14 +108,18 @@ object LocalHostSocket {
                             byteBufferIn.rewind()
                             byteBufferIn.get(byteArrayIn)
                             val strIn = byteArrayIn.decodeToString()
+                            var closeChannel = false
                             var strOut = ""
                             SocketConfig.Runtime(
                                 connectionIndex = connectionCount,
                                 msg = strIn,
-                                param = socketConfig.param
-                            ) { strOut = it }.block()
+                                param = socketConfig.param,
+                                closeChannel = { closeChannel = true },
+                                result = { strOut = it }
+                            ).block()
                             val byteBufferOut = java.nio.ByteBuffer.wrap(strOut.toByteArray())
                             socketChannel.write(byteBufferOut)
+                            if (closeChannel) serverSocketChannel.close()
                         }
                     }
                 }

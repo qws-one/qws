@@ -11,7 +11,7 @@ object Lib {
         fun register(id: String, keyStroke: String, action: IdeAnAction) {
             register(id, action)
             val shortcut = IdeKeyboardShortcut(JvmKeyStroke.getKeyStroke(keyStroke), null)
-            val keymap: IdeKeymap = KeymapMgr.getInstance().activeKeymap;
+            val keymap: IdeKeymap = KeymapMgr.getInstance().activeKeymap
             keymap.removeAllActionShortcuts(id)
             keymap.addShortcut(id, shortcut)
         }

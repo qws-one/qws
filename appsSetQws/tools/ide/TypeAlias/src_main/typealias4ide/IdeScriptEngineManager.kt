@@ -5,7 +5,7 @@ class IdeScriptEngineManager {
         val fileExtensions = ""
     }
 
-    fun getEngine(engineInfo: IdeScriptEngineManager.EngineInfo, classLoader: ClassLoader?): IdeScriptEngine? = null
+    fun getEngine(engineInfo: EngineInfo, classLoader: ClassLoader?): IdeScriptEngine? = null
 
     @Suppress("SpellCheckingInspection")
     val engineInfos = emptyList<EngineInfo>()

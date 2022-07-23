@@ -4,20 +4,18 @@ typealias JvmFile = java.io.File
 
 
 @Suppress("ClassName", "MemberVisibilityCanBePrivate", "unused", "FunctionName")
-object BuildDesc {
+object BuildDesc : BuildDescConst by BuildDescConst.Companion {
     const val kotlin_version = "1.7.10"
     const val jvmTarget = "17"
 
     const val opt_local_gradle = "/opt/local/gradle"
 
-    const val app_init_by_gradle = "app__init/app_init_by_gradle"
-    const val gradle_build_place_conf_txt = "$app_init_by_gradle/../gradle.build.place.conf.txt"
+    const val app_init_by_gradle = "${BuildDescConst.app__init}/app_init_by_gradle"
+    const val gradle_build_place_conf_txt = "$app_init_by_gradle/../conf.place.of.ext.all.gradle.build.txt"
 
     const val build_gradle_root_kts = ".root.gradle.kts"
-    const val settings_gradle_kts = "settings.gradle.kts"
-    const val build_gradle_kts = "build.gradle.kts"
+    const val build_gradle_kts = ".build.gradle.kts"
     const val all_build_place_txt = ".all.build.place.txt"
-    const val dependencies_src_txt = ".dependencies_src.txt"
 
     @Suppress("ObjectPropertyName")
     val _gradle_dir = ".gradle"
@@ -36,34 +34,38 @@ object BuildDesc {
     @Suppress("DEPRECATION")
     private fun String.capitalize() = get(0).toUpperCase() + substring(1)
 
-    class AppsPlace(val dir: JvmFile, val placeDir: JvmFile, val name: String = qws, val gradleBuildPlaceConfTxt: JvmFile = emptyFile) {
+    class AppsPlace(val dir: JvmFile, val name: String, val gradleBuildPlaceConfTxt: JvmFile = emptyFile) {
         companion object {
-            const val qws = "qws"
-            fun from(place: JvmFile, name: String) = AppsPlace(
-                place,
-                file(place, name),
-                qws,
-                file(place, gradle_build_place_conf_txt).run { if (exists()) absoluteFile else emptyFile })
+            fun from(place: JvmFile) = AppsPlace(place, place.name, file(place, gradle_build_place_conf_txt).run { if (exists()) absoluteFile else emptyFile })
+        }
+    }
+
+    class AppsSetPlace(val placeDir: JvmFile, val name: String, val mapOfProjects: Map<String, SubProject>) {
+        companion object {
+            fun from(place: JvmFile, name: String, map: Map<String, SubProject>) = AppsSetPlace(file(place, name), name, map)
         }
     }
 
     val libTools = lib.tools
     lateinit var runtime: Runtime
 
+    @Suppress("PropertyName")
     interface Runtime {
+        val src_init: JvmFile
         val JvmFile.deleteIfExist: Boolean
         infix fun JvmFile.update(text: String)
         fun JvmFile.create(getText: () -> String)
 
         companion object {
-
             val empty = object : Runtime {
+                override val src_init = emptyFile
                 override val JvmFile.deleteIfExist: Boolean get() = false
                 override fun JvmFile.update(text: String) {}
                 override fun JvmFile.create(getText: () -> String) {}
             }
 
-            val writable = object : Runtime {
+            fun writable(srcInit: JvmFile) = object : Runtime {
+                override val src_init = srcInit
                 override val JvmFile.deleteIfExist: Boolean
                     get() {
                         if (exists()) {
@@ -99,10 +101,11 @@ object BuildDesc {
 
     object lib {
         private infix fun JvmFile.update(text: String) = with(runtime) { update(text) }
-        private fun JvmFile.create(getText: () -> String) = with(runtime) { create(getText) }
+        private infix fun JvmFile.create(getText: () -> String) = with(runtime) { create(getText) }
 
-        class tools(val appsPlace: AppsPlace, val map: Map<String, SubProject>) {
-            val placeDir = appsPlace.placeDir.also { mapConfigured[appsPlace.placeDir.name] = appsPlace }
+        class tools(val appsPlace: AppsPlace, val appsSet: AppsSetPlace) {
+            val map = appsSet.mapOfProjects
+            val placeDir = appsSet.placeDir.also { mapConfigured[appsSet.name] = appsSet }
 
             //val SubProject.place get() = file(placeDir, path())
             fun SubProject.place(path: String) = file(placeDir, "${path()}/$path")
@@ -110,7 +113,7 @@ object BuildDesc {
             fun SubProject.relativePlace(path: String) = "${relativePlace}/$path".replace("//", "/")
 
             companion object {
-                val mapConfigured = mutableMapOf<String, AppsPlace>()
+                val mapConfigured = mutableMapOf<String, AppsSetPlace>()
 
                 fun allUsedGradleLinkToIde(place: JvmFile) = file(place, ".idea/gradle.xml") update """<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
@@ -158,7 +161,8 @@ ${
             }
 
             fun SubProject.srcDirs() = when (conf) {
-                is Main -> listOf(*conf.srcDirs.toTypedArray(), Main.srcDir)
+                is Main -> listOf(*conf.srcDirs.toTypedArray(), src_module_info, Main.srcDir)
+                is ConfModule -> listOf(*conf.srcDirs.toTypedArray(), src_module_info)
                 else -> conf.srcDirs
             }
 
@@ -171,15 +175,14 @@ ${
                     }
                 }                  */
                 file(placeDir, settings_gradle_kts) update """rootProject.buildFileName = "$build_gradle_root_kts"
-${map.keys.sorted().joinToString("\n") { "include(\"$it\")" }} 
-"""
+${map.keys.sorted().joinToString("\n") { "\"$it\".let { include(it); project(it).buildFileName = \"$build_gradle_kts\" }" }}"""
             }
 
             fun build_gradle() = buildGradle()
             fun build_gradle(plus: BuildGradlePlus) = buildGradle(imports = plus.imports, plugins = plus.plugins, plus = plus.plus)
             fun buildGradle(imports: String = "", plugins: List<String> = emptyList(), plus: String = "") {
                 if (extBuildDir && emptyFile != appsPlace.gradleBuildPlaceConfTxt) {
-                    file(placeDir, all_build_place_txt) update appsPlace.gradleBuildPlaceConfTxt.readText() + "/${appsPlace.name}-${placeDir.name}"
+                    file(placeDir, all_build_place_txt) update appsPlace.gradleBuildPlaceConfTxt.readText().trim() + "/${appsPlace.name}-${placeDir.name}"
                 }
                 //println("tools.buildGradle extBuildDir=$extBuildDir placeDir=$placeDir")
                 file(placeDir, build_gradle_root_kts) update imports + buildGradleInitialContent(plugins) + plus
@@ -225,10 +228,10 @@ ${if (extBuildDir()) "    buildDir = file(buildPlace + path.replace(':', '/')+\"
                 var sqlDelightConf = ""
                 if (prj.conf.dependenciesContains(jar.sql_delight)) {
                     val srcSqlDelight = "sql"
-                    val packageName = "${appsPlace.name}.one"
+                    val packageName = "${qws}.one"
                     val sqFilePlace = prj.place("src/main/$srcSqlDelight/${packageName.replace('.', '/')}")
                     if ((sqFilePlace.listFiles() ?: emptyArray()).none { it.extension == "sq" }) {
-                        file(sqFilePlace, "/OneData.sq").create { "--" }
+                        file(sqFilePlace, "/OneData.sq") create { "--" }
                     }
                     val sqlDelightVersion = jar.sql_delight.split(':')[2].trim()
                     prj.conf.implementation("com.squareup.sqldelight:coroutines-extensions-jvm:$sqlDelightVersion")
@@ -242,20 +245,19 @@ ${if (extBuildDir()) "    buildDir = file(buildPlace + path.replace(':', '/')+\"
 }"""
                 }
                 var applicationConf = ""
-                if (prj.conf is CliApp) {
+                if (prj.conf is CliApp || prj.mainClassToRun.valid) {
                     //https://docs.gradle.org/current/userguide/application_plugin.html
                     //gradle run --args="foo --bar" (see JavaExec.setArgsString(java.lang.String).
                     plugins = plugins.plus(listOf("application"))
                     applicationConf = """application {
-    mainClass.set("${prj.name.capitalize()}")
+    mainClass.set("${prj.mainClassToRun.name.ifEmpty { prj.name }.capitalize()}")
 }
 //                              --build-file Note: This property is deprecated and will be removed in the next major version of Gradle.
 // /opt/local/gradle/bin/gradle --build-file .../${prj.relativePlace(build_gradle_kts)} run
 // sh -c 'cd .../${prj.relativePlace} && /opt/local/gradle/bin/gradle run'
 """
                 }
-                //prj.srcDirs().forEach { prj.place(it).let { dir -> if (dir.name != src_module_info) dir.mkdirs() } }
-                prj.srcDirs().forEach { if (it != src_module_info) prj.place(it).mkdirs() }
+                prj.srcDirs().forEach { prj.place(it).mkdirs() }
                 prj.place(build_gradle_kts) update """$imports
 plugins {
     kotlin("jvm")
@@ -264,6 +266,11 @@ ${if (prj.conf.dependencies.isNotEmpty()) "dependencies {\n${prj.conf.dependenci
 ${if (prj.srcDirsStandard) "" else """sourceSets.main { java.srcDirs(${prj.srcDirs().joinToString { """"$it"""" }}) }"""}
 $sqlDelightConf
 $applicationConf""".trim()
+                if (prj.name == BuildDescConst::class.simpleName) "${prj.name}.kt".let {
+                    file(placeDir, "${prj.pathOfKotlinSrcDir()}/$it") update file(runtime.src_init, it).run {
+                        if (exists()) readText() + "\n// this is copy, do not edit it" else /*writeChangesMode == false*/ ""
+                    }
+                }
             }
 
             fun active(vararg list: SubProject) = list.forEach { prj ->
@@ -272,15 +279,14 @@ $applicationConf""".trim()
                     is IdeScript -> objectIdeScript(prj)
                     is Script -> objectScript(prj)
                     is Main -> objectMain(prj)
+                    is ConfModule -> moduleInfo(prj)
                     is CliApp -> objectCliApp(prj, prj.name.capitalize())
                     else -> {}
                 }
                 prj.place(dependencies_src_txt) update prj.dependenciesSrcList().joinToString("\n")
             }
 
-            private fun objectIdeAction(prj: SubProject) {
-                objectIdeScript(prj)
-            }
+            private fun objectIdeAction(prj: SubProject) = objectIdeScript(prj)
 
             private fun objectIdeScript(prj: SubProject) {
                 prj.conf.implementation(root.tools.ide.TypeAlias)
@@ -291,36 +297,33 @@ $applicationConf""".trim()
             private fun objectScript(prj: SubProject) {
                 prj.conf.implementation(root.libs.Util)
                 prj.conf.implementation(root.libs.LocalHostSocket)
-                prj.conf.implementation(root.libs.SimpleScript)
                 prj.conf.implementation(root.libs.SimpleReflect)
-                prj.conf.implementation(root.tools.RunSimpleScript)
+                prj.conf.implementation(root.libs.ScriptStr, root.libs.ScriptStrRunEnv)
+                prj.conf.implementation(root.tools.RunScriptStr)
                 prj.conf.implementation(root.tools.Config)
                 objectMain(prj)
             }
 
-            private fun moduleInfo(prj: SubProject) = "ModuleInfo".let { name ->
+            private fun moduleInfo(prj: SubProject) {
                 prj.conf.implementation(root.tools.Module)
                 //file(placeDir, "${prj.pathOfKotlinSrcDir()}/$name.kt").apply { if (exists()) delete() }
-                file(placeDir, "${prj.pathOfModuleInfoSrcDir()}/$name.kt").update(
-                    """
-object $name : ModuleUtil.Info {
+                file(placeDir, "${prj.pathOfModuleInfoSrcDir()}/$ModuleInfo.kt") update """object $ModuleInfo : ModuleUtil.Info {
     override val appsSetName = "${placeDir.name}"
     override val name = "${prj.name}"
     override val srcDirsCsv = "${prj.srcDirs().joinToString(",")}"
     override val relativePath = "${prj.moduleRelativePath()}"
     override val dependenciesSrcCsv = "${prj.dependenciesSrcList().joinToString(",")}"
-}""".trim()
-                )
+}"""
+                if (prj.mainClassToRun.valid) objectCliApp(prj, prj.mainClassToRun.name)
             }
 
             private fun objectMain(prj: SubProject) {
                 moduleInfo(prj)
-                objectCliApp(prj, "Main")
+                if (prj.mainClassToRun.isEmpty) objectCliApp(prj, "Main")
             }
 
-            private fun objectCliApp(prj: SubProject, name: String) {
-                file(placeDir, "${prj.pathOfKotlinSrcDir()}/$name.kt").create {
-                    """//
+            private fun objectCliApp(prj: SubProject, name: String) = file(placeDir, "${prj.pathOfKotlinSrcDir()}/$name.kt") create {
+                """//
 object $name {
 
     @JvmStatic
@@ -328,15 +331,14 @@ object $name {
         println("${'$'}{this::class.simpleName} args.size=${'$'}{args.size} args=${'$'}{args.toList()}")
     }
 }"""
-                }
             }
         }
 
-        class SubProjectDelegate(val map: MutableMap<String, SubProject>, val conf: Conf, val block: Conf.() -> Unit) {
+        class SubProjectDelegate(val map: MutableMap<String, SubProject>, val mainClassToRun: MainClassToRun, val conf: Conf, val block: Conf.() -> Unit) {
             operator fun getValue(thisRef: Any, property: kotlin.reflect.KProperty<*>): SubProject {
                 val className = thisRef::class.java.name ?: TODO("... for BuildDesc")
                 val c = '$'
-                val arr = className.split("${c}root$c")
+                val arr = className.split("${c}root$c") // TODO: ${c}root$c"
                 val path = if (arr.size > 1) arr[1].split(c) else emptyList()
                 val splitter = ":"
                 val id = "${splitter}${path.joinToString(splitter)}$splitter${property.name}".replace("::", ":")
@@ -344,14 +346,15 @@ object $name {
                     return map[id] ?: TODO("... for BuildDesc")
                 }
                 conf.block()
-                val prj = SubProject(id, path, property.name, conf)
+                val mainClass = if (mainClassToRun.valid) MainClassToRun(property.name.capitalize()) else mainClassToRun
+                val prj = SubProject(id, mainClass, path, property.name, conf)
                 map[id] = prj
                 return prj
             }
         }
     }
 
-    class SubProject(val id: String, val path: List<String>, val name: String, val conf: Conf) {
+    class SubProject(val id: String, val mainClassToRun: MainClassToRun, val path: List<String>, val name: String, val conf: Conf) {
         val srcDirsStandard get() = conf is ConfFresh || conf.srcDirs == src_main_kotlin_and_java
         val slash = "/"
         fun path() = "${slash}${path.joinToString(slash)}$slash$name$slash"
@@ -396,9 +399,19 @@ object $name {
     const val src_main_java = "src/main/java"
     const val src_main_kotlin = "src/main/kotlin"
     const val src_main = "src_main"
-    const val src_module_info = "src_module_info"
-    val src_folder = listOf(src_main, src_module_info)
+
+    val src_folder = listOf(src_main)
     val src_main_kotlin_and_java = listOf(src_main_kotlin, src_main_java)
+
+    class MainClassToRun(val name: String) {
+        val isEmpty get() = empty == this
+        val valid get() = !isEmpty
+
+        companion object {
+            val empty = MainClassToRun("")
+            val byName = MainClassToRun("")
+        }
+    }
 
     class ConfFresh : Conf(listOf(src_main_kotlin))
     class ConfC(srcDirs: List<String>) : Conf(srcDirs)
@@ -407,20 +420,22 @@ object $name {
     open class Script : Main()
     open class IdeScript : Script()
     class IdeAction : IdeScript()
-    open class Main : ConfPlane() {
+    open class ConfModule : ConfPlane()
+    open class Main : ConfModule() {
         companion object {
             const val srcDir = "src_one"
         }
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    abstract class ProjectsSetPlace(val mapOfProjects: MutableMap<String, SubProject> = mutableMapOf()) {
-
-        @Suppress("UNCHECKED_CAST")
-        inline fun projectConf(srcDirs: List<String>, noinline block: ConfC.() -> Unit) =
-            lib.SubProjectDelegate(mapOfProjects, ConfC(srcDirs), block as Conf.() -> Unit)
-
-        inline fun <reified T : Conf> projectConf(noinline block: T.() -> Unit): lib.SubProjectDelegate {
+    abstract class AppsSetConf(val mapOfProjects: MutableMap<String, SubProject> = mutableMapOf()) {
+        val projectConf get() = lib.SubProjectDelegate(mapOfProjects, MainClassToRun.empty, ConfPlane()) {}
+        inline fun projectConf(noinline block: Conf.() -> Unit) = lib.SubProjectDelegate(mapOfProjects, MainClassToRun.empty, ConfPlane(), block) //@formatter:off
+        inline fun projectConf(mainClassToRun: MainClassToRun, noinline block: Conf.() -> Unit) = lib.SubProjectDelegate(mapOfProjects, mainClassToRun, ConfPlane(), block)
+        inline fun projectConf(srcDirs: List<String>, noinline block: Conf.() -> Unit) = lib.SubProjectDelegate(mapOfProjects, MainClassToRun.empty, ConfC(srcDirs), block)
+        inline fun <reified T : Conf> project() = project<T> {} //@formatter:on
+        inline fun <reified T : Conf> project(noinline block: T.() -> Unit) = project(MainClassToRun.empty, block)
+        inline fun <reified T : Conf> project(mainClassToRun: MainClassToRun, noinline block: T.() -> Unit): lib.SubProjectDelegate {
             val conf = when (T::class) {
                 ConfFresh::class -> ConfFresh()
                 ConfPlane::class -> ConfPlane()
@@ -428,71 +443,66 @@ object $name {
                 IdeScript::class -> IdeScript()
                 Script::class -> Script()
                 Main::class -> Main()
+                ConfModule::class -> ConfModule()
                 CliApp::class -> CliApp()
                 else -> TODO("... for BuildDesc")
             }
-            @Suppress("UNCHECKED_CAST") return lib.SubProjectDelegate(mapOfProjects, conf, block as Conf.() -> Unit)
+            @Suppress("UNCHECKED_CAST") return lib.SubProjectDelegate(mapOfProjects, mainClassToRun, conf, block as Conf.() -> Unit)
         }
-
-        val projectConf get() = lib.SubProjectDelegate(mapOfProjects, ConfPlane()) {}
-
     }
 
-    class ProjectsSetSettingsDelegate {
-        operator fun <T : appsBase> getValue(thisRef: T, property: kotlin.reflect.KProperty<*>) = ProjectsSetSettings(thisRef)
+    class AppsSetConfSettingsDelegate {
+        operator fun <T : appsSetConf> getValue(thisRef: T, property: kotlin.reflect.KProperty<*>) = AppsSetConfSettings(thisRef)
     }
 
-    class ProjectsSetSettings<T : appsBase>(val projectsSetPlace: T) {
-        fun initTools(projectDir: JvmFile) = with(projectsSetPlace) {
-            _tools = lib.tools(AppsPlace.from(projectDir, name.ifEmpty { this.javaClass.simpleName }), mapOfProjects)
+    class AppsSetConfSettings<T : appsSetConf>(val appsSet: T) {
+        fun initTools(projectDir: JvmFile) = with(appsSet) {
+            _tools = lib.tools(AppsPlace.from(projectDir), AppsSetPlace.from(projectDir, name.ifEmpty { this.javaClass.simpleName }, mapOfProjects))
         }
 
         fun configure(projectDir: JvmFile) {
             initTools(projectDir)
-            projectsSetPlace._tools.disable_build_gradle()
+            appsSet._tools.disable_build_gradle()
         }
 
-        fun configure(projectDir: JvmFile, block: T.() -> Unit) = if (configureFull(projectDir, block)) with(projectsSetPlace._tools) {
+        fun configure(projectDir: JvmFile, block: T.() -> Unit) = if (configureFull(projectDir, block)) with(appsSet._tools) {
             build_gradle_of_sub_projects()
             build_gradle()
             settings_gradle()
         } else Unit
 
-        fun configureFull(projectDir: JvmFile, block: T.() -> Unit) = with(projectsSetPlace) {
+        fun configureFull(projectDir: JvmFile, block: T.() -> Unit) = with(appsSet) {
             initTools(projectDir)
-            block()
-            if (mapOfProjects.isEmpty()) {
-                _tools.disable_build_gradle()
-                false
-            } else true
-        }
+            block()//@formatter:off
+            if (mapOfProjects.isEmpty()) { _tools.disable_build_gradle(); false } else true
+        }          //@formatter:on
     }
 
-    abstract class appsBase(val name: String = "") : ProjectsSetPlace() {
+    abstract class appsSetConf(val name: String = "") : AppsSetConf() {
         @Suppress("PropertyName")
         lateinit var _tools: lib.tools
 
         @Suppress("PropertyName")
-        val Settings get() = ProjectsSetSettingsDelegate()
-        abstract val settings: ProjectsSetSettings<*>
+        val Settings get() = AppsSetConfSettingsDelegate()
+        abstract val settings: AppsSetConfSettings<*>
 
         fun localBuildDir() = _tools.localBuildDir()
         fun active(vararg list: SubProject) = _tools.active(*list)
     }
 
-    object root : appsBase("appsSetQws") {
+    object root : appsSetConf("appsSetQws") {
         override val settings by Settings
 
         object apps {
-            val appA by projectConf<ConfPlane> { implementation(libs.libQws, libs.libQwsEmptyImpl) }
-            val appA_run1 by projectConf<Main> { implementation(appA, libs.libQws) }
-            val appA_run2 by projectConf<Main> { implementation(appA, libs.libQws) }
-            val appB by projectConf<ConfFresh> { implementation(libs.libQws, libs.libQwsEmptyImpl, libs.LocalHostSocket) }
+            val appA by projectConf { implementation(libs.libQws, libs.libQwsEmptyImpl) }
+            val appA_run1 by project<Main> { implementation(appA, libs.libQws) }
+            val appA_run2 by project<Main> { implementation(appA, libs.libQws) }
+            val appB by project<ConfFresh> { implementation(libs.libQws, libs.libQwsEmptyImpl, libs.LocalHostSocket) }
             val appC by projectConf(src_main_kotlin_and_java) {
                 implementation(appA, libs.libQws, libs.LocalHostSocket, libs.SimpleReflect)
                 runtimeOnly(jar.kotlin_scripting_jsr223)
             }
-            val appPlainIde by projectConf<ConfPlane> {
+            val appPlainIde by projectConf {
                 implementation(tools.Config)
                 implementation(tools.toolPlainIdeListener)
                 implementation(libs.LocalHostSocket)
@@ -503,15 +513,17 @@ object $name {
         object libs {
             val LocalHostSocket by projectConf
             val libQws by projectConf
-            val libQwsEmptyImpl by projectConf<ConfPlane> { implementation(libQws) }
+            val libQwsEmptyImpl by projectConf { implementation(libQws) }
             val SimpleReflect by projectConf
             val SimpleScript by projectConf
+            val ScriptStr by projectConf
+            val ScriptStrRunEnv by projectConf
             val Util by projectConf
         }
 
         object tools {
             object script {
-                val one by projectConf<Script> {}
+                val one by project<Script>()
             }
 
             object ide {
@@ -519,51 +531,70 @@ object $name {
                 val ActionRegister by projectConf(srcDirs = listOf("src_lib", "src_actions", "src_tool")) {
                     implementation(TypeAlias)
                 }
-                val Lib by projectConf<ConfPlane> {
+                val Lib by projectConf {
                     implementation(TypeAlias)
                 }
 
+                val KtsListener by project<ConfModule>(MainClassToRun.byName) {
+                    implementation(libs.Util)
+                    implementation(libs.LocalHostSocket)
+                    implementation(libs.SimpleReflect)
+                    implementation(libs.ScriptStr)
+                    implementation(libs.ScriptStrRunEnv)
+                    implementation(ide.TypeAlias)
+                    implementation(ide.Lib)
+                    implementation(BuildDescConst)
+                    implementation(RunScriptStr)
+                    implementation(Config)
+                }
+
                 object action {
-                    val KtsListener by projectConf<IdeAction> {}
+                    val ideAction by project<IdeAction>(MainClassToRun.byName) { implementation(BuildDescConst) }
                 }
 
                 object script {
-                    val two by projectConf<IdeScript> {}
+                    val two by project<IdeScript> { implementation(libs.SimpleScript, RunSimpleScript) }
+                    val three by project<IdeScript>()
                 }
             }
 
+            val BuildDescConst by projectConf
             val Config by projectConf
             val Module by projectConf
-            val RunSimpleScript by projectConf<ConfPlane> {
-                implementation(Config, Module, libs.LocalHostSocket, libs.Util)
+            val RunSimpleScript by projectConf {
+                implementation(Config, BuildDescConst, Module, libs.LocalHostSocket, libs.Util)
             }
-            val toolPlainIdeListener by projectConf<ConfPlane> {
+            val RunScriptStr by projectConf {
+                implementation(Config, BuildDescConst, Module, libs.LocalHostSocket, libs.Util)
+                implementation(libs.ScriptStr, libs.ScriptStrRunEnv)
+            }
+            val toolPlainIdeListener by projectConf {
                 implementation(Config, libs.LocalHostSocket)
             }
-            val toolPlainTypeAliasIdeListener by projectConf<ConfPlane> {
+            val toolPlainTypeAliasIdeListener by projectConf {
                 implementation(Config, ide.TypeAlias, libs.LocalHostSocket)
             }
-            val toolSimpleScriptIdeListener by projectConf<ConfPlane> {
+            val toolSimpleScriptIdeListener by projectConf {
                 implementation(Config, libs.LocalHostSocket)
             }
         }
     }
 
-    class app(name: String) : appsBase(name) {
+    class app(name: String) : appsSetConf(name) {
         override val settings by Settings
-        val cli by projectConf<CliApp> {}
+        val cli by project<CliApp>()
     }
 
-    object app_cliA : appsBase() {
+    object app_cliA : appsSetConf() {
         override val settings by Settings
-        val cliA by projectConf<CliApp> { implementation(jar.xodus) }
+        val cliA by project<CliApp> { implementation(jar.xodus) }
     }
 
-    object app_cliAB : appsBase() {
+    object app_cliAB : appsSetConf() {
         override val settings by Settings
         val libA by projectConf
-        val appA by projectConf<CliApp> { implementation(libA, jar.xodus) }
-        val cliB by projectConf<CliApp> { implementation(libA, jar.sql_delight) }
+        val appA by project<CliApp> { implementation(libA, jar.xodus) }
+        val cliB by project<CliApp> { implementation(libA, jar.sql_delight) }
     }
 
     object jar {
@@ -573,9 +604,9 @@ object $name {
         const val xodus = "org.jetbrains.xodus:dnq:1.4.480"
     }
 
-    object tempApp : appsBase() {
+    object tempApp : appsSetConf() {
         override val settings by Settings
-        val tempA by projectConf<CliApp> { implementation(jar.sql_delight) }
+        val tempA by project<CliApp> { implementation(jar.sql_delight) }
     }
 
     fun appsSetQwsInit(placeDir: JvmFile) = root.settings.configureFull(placeDir) {
@@ -588,9 +619,11 @@ object $name {
 
             root.apps.appPlainIde,
             root.tools.ide.ActionRegister,
-            root.tools.ide.action.KtsListener,
+            root.tools.ide.KtsListener,
+            root.tools.ide.action.ideAction,
             root.tools.script.one,
             root.tools.ide.script.two,
+            root.tools.ide.script.three,
 
             root.tools.toolSimpleScriptIdeListener,
             root.tools.toolPlainTypeAliasIdeListener,
@@ -603,9 +636,7 @@ object $name {
 import org.jetbrains.gradle.ext.*
 import org.jetbrains.gradle.ext.ActionDelegationConfig.TestRunner.CHOOSE_PER_TEST
 import org.jetbrains.gradle.ext.EncodingConfiguration.BomPolicy
-""",
-            listOf(""" id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.5" """),
-            """
+""", listOf(""" id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.5" """), """
 group = "local.qws"
 version = "1.0-SNAPSHOT"
 
@@ -635,35 +666,35 @@ idea.project.settings { //https://github.com/JetBrains/gradle-idea-ext-plugin/wi
         )
     }
 
-    class AllInit(val placeDir: JvmFile, write: Boolean, block: AllInit.() -> Unit) {
+    class AllInit(scriptFile: JvmFile, val placeDir: JvmFile = scriptFile.up.up.up, writeChangesMode: Boolean, block: AllInit.() -> Unit) {
         init {
-            runtime = if (write) Runtime.writable else Runtime.empty
+            runtime = if (writeChangesMode) Runtime.writable(JvmFile(scriptFile.up.up, "src_init")) else Runtime.empty
             this.block()
         }
 
         @Suppress("UNCHECKED_CAST")
-        fun <T : appsBase> T.configure(block: T.() -> Unit) = this.settings.configure(placeDir, block as appsBase.() -> Unit)
+        infix fun <T : appsSetConf> T.configure(block: T.() -> Unit) = this.settings.configure(placeDir, block as appsSetConf.() -> Unit)
         val String.configure get() = app(this).settings.configure(placeDir) { active(cli) }
         val allUnusedGradleUnlink get() = lib.tools.allUnusedGradleUnlink(placeDir)
         val allUsedGradleLinkToIde get() = lib.tools.allUsedGradleLinkToIde(placeDir)
     }
 
-    private fun allInit(placeDir: JvmFile, write: Boolean) = AllInit(placeDir, write) {
+    private fun allInit(scriptFile: JvmFile, write: Boolean) = AllInit(scriptFile, writeChangesMode = write) {
         appsSetQwsInit(placeDir)
         "app_cli".configure
-        app_cliA.configure { active(cliA) }
-        app_cliAB.configure { active(appA, cliB) }
+        app_cliA configure { active(cliA) }
+        app_cliAB configure { active(appA, cliB) }
 
-        //tempApp.configure { localBuildDir(); active(tempA) }
+        //tempApp configure { localBuildDir(); active(tempA) }
 
         allUnusedGradleUnlink
         allUsedGradleLinkToIde
     }
 
-    fun onAppInit(absolutePath: String, write: Boolean = true): AllInit {
+    fun onAppInit(absolutePath: String, writeChangesMode: Boolean = true): AllInit {
         val scriptFile = JvmFile(absolutePath).absoluteFile
         println(" BuildDesc scriptFile=$scriptFile")
-        val init = allInit(scriptFile.up.up.up, write)
+        val init = allInit(scriptFile, writeChangesMode)
         println(" BuildDesc placeDir=${init.placeDir} configured=${BuildDesc.libTools.mapConfigured.keys}")
         return init
     }

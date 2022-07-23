@@ -41,7 +41,7 @@ class RunContentManager {
 
 class ExecutionManager {
 
-    @kotlin.Deprecated("")
+    @Deprecated("")
     fun getContentManager(): RunContentManager = TODO()
 
     companion object {

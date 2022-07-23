@@ -1,2 +1,2 @@
 rootProject.buildFileName = ".root.gradle.kts"
-include(":cliA") 
+":cliA".let { include(it); project(it).buildFileName = ".build.gradle.kts" }

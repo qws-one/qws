@@ -1,0 +1,16 @@
+object M2 : ScriptStr {
+
+    override fun script(runtimeMap: Map<String, Any?>) = ScriptStr {
+        println("${this::class.simpleName} ${ModuleInfo.appsSetName} ${ModuleInfo.name} ${ModuleInfo.relativePath} ${ModuleInfo.dependenciesSrcCsv}")
+
+        scriptStrResult put "${ModuleInfo.appsSetName} ${ModuleInfo.name} ${ModuleInfo.relativePath} ${ModuleInfo.dependenciesSrcCsv}"
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) = RunScriptStr(ModuleInfo) {
+        conf(
+            ToolSharedConfig.chanelIdPlainTypeAliasIdeListener,
+            saveToPlace = placeInIdeScripting("$ide_scripting/$ide_scripting-M2.kts"),
+        )
+    }
+}

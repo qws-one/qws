@@ -1,4 +1,7 @@
 
 /out/
-/gradle.build.place.conf.txt
-/gradle.build.place.conf0.txt
+
+/conf.place.of.ext.all.gradle.build.txt
+/conf.place.of.ext.all.gradle.build0.txt
+
+/conf.place.of.ide-scripting.txt

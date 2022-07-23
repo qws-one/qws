@@ -42,9 +42,7 @@ abstract class ActionGroup {
     fun add(action: AnAction) {}
 }
 
-class DefaultActionGroup : ActionGroup() {
-
-}
+class DefaultActionGroup : ActionGroup()
 
 @Suppress("UNUSED_PARAMETER")
 class ActionManager {
