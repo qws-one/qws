@@ -54,4 +54,6 @@ object Fs {
         }
 
     inline val String._file get() = _file(this)
+
+    fun createTempFile(prefix: String, suffix: String) = java.io.File.createTempFile(prefix, suffix)
 }

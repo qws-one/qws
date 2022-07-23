@@ -90,7 +90,7 @@ object LocalHostSocket {
 
     fun tmpUdsFilePath(suffix: Int) = tmpUdsFilePath(suffix.toString())
 
-    fun tmpUdsFilePath(suffix: String) = "/var/run/user/1001/uds_tmp_$suffix"
+    fun tmpUdsFilePath(suffix: String) = "/var/run/user/1005/uds_tmp_$suffix"
 
     fun socketListen(block: SocketConfig.Runtime.() -> Unit) = listen(SocketConfig.defaultUDS, block)
 

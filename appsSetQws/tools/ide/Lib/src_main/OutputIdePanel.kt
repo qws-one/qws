@@ -1,12 +1,7 @@
-class OutputPanel(val projectName: String, val descriptor: IdeRunContentDescriptor, val descriptorDisplayName: String, val type: Type) : PrintLine {
+class OutputIdePanel(val projectName: String, val descriptor: IdeRunContentDescriptor, val descriptorDisplayName: String, val type: Type) : OutputPanel {
     enum class Type(val executor: () -> IdeExecutor) {
         Run({ IdeDefaultRunExecutor.getRunExecutorInstance() }),
         Dbg({ IdeDefaultDebugExecutor.getDebugExecutorInstance() })
-    }
-
-    interface Out : PrintLine {
-        operator fun invoke(msg: Any?) = this.println(msg)
-        infix fun print(msg: Any?)
     }
 
     private fun Any?.string() = (this?.toString() ?: "null")
@@ -20,7 +15,7 @@ class OutputPanel(val projectName: String, val descriptor: IdeRunContentDescript
         consoleView?.print(msg.stringln(), IdeConsoleViewContentType.NORMAL_OUTPUT)
     }
 
-    val out = object : Out {
+    override val out = object : OutputPanel.Out {
         override fun print(msg: Any?) {
             consoleView?.print(msg.string(), IdeConsoleViewContentType.NORMAL_OUTPUT)
         }
@@ -30,7 +25,7 @@ class OutputPanel(val projectName: String, val descriptor: IdeRunContentDescript
         }
     }
 
-    val err = object : Out {
+    override val err = object : OutputPanel.Out {
         override fun print(msg: Any?) {
             consoleView?.print(msg.string(), IdeConsoleViewContentType.ERROR_OUTPUT)
         }
@@ -43,9 +38,11 @@ class OutputPanel(val projectName: String, val descriptor: IdeRunContentDescript
     fun printHyperlink(msg: Any?, block: (IdeProject) -> Unit) =
         consoleView?.printHyperlink(msg.string(), IdeHyperlinkInfo { block(it) })
 
-    fun printHyperlinkDummy(msg: Any?, block: () -> Unit) = consoleView?.printHyperlink(msg.string(), IdeHyperlinkInfo { block() })
+    override fun printHyperlinkDummy(msg: Any?, block: () -> Unit) {
+        consoleView?.printHyperlink(msg.string(), IdeHyperlinkInfo { block() })
+    }
 
-    fun toFrontRunContent(): OutputPanel {
+    override fun toFrontRunContent(): OutputIdePanel {
         ProjectMgr.getInstance().openProjects.forEach {
             if (projectName == it.name) {
                 ApplicationMgr.getApplication().invokeLater {

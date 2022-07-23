@@ -3,6 +3,7 @@ plugins {
 }
 dependencies {
     implementation(project(":libs:LocalHostSocket"))
+    implementation(project(":libs:OutputPanel"))
     implementation(project(":libs:ScriptStr"))
     implementation(project(":libs:ScriptStrRunEnv"))
     implementation(project(":libs:SimpleReflect"))

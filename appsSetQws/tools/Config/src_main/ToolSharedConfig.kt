@@ -6,8 +6,8 @@
 //
 //
 object ToolSharedConfig {
-    const val chanelIdDummy = -1
-    const val chanelIdSimpleScriptListener = 8793
-    const val chanelIdPlainTypeAliasIdeListener = 8190
-    const val chanelIdDefault = chanelIdPlainTypeAliasIdeListener
+    const val chanelId_Dummy = -1
+    const val chanelId_ScriptListener = 8750
+    const val chanelId_IdeScriptListener = 8710
+    const val chanelIdDefault = chanelId_IdeScriptListener
 }

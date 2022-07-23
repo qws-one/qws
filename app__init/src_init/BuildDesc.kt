@@ -291,6 +291,7 @@ $applicationConf""".trim()
             private fun objectIdeScript(prj: SubProject) {
                 prj.conf.implementation(root.tools.ide.TypeAlias)
                 prj.conf.implementation(root.tools.ide.Lib)
+                prj.conf.implementation(root.libs.OutputPanel)
                 objectScript(prj)
             }
 
@@ -500,13 +501,15 @@ object $name {
             val appB by project<ConfFresh> { implementation(libs.libQws, libs.libQwsEmptyImpl, libs.LocalHostSocket) }
             val appC by projectConf(src_main_kotlin_and_java) {
                 implementation(appA, libs.libQws, libs.LocalHostSocket, libs.SimpleReflect)
+                implementation(libs.Util, libs.OutputPanel, libs.KtsListener, libs.OutputPanelSystemOut)
+                implementation(libs.ScriptStr, libs.ScriptStrRunEnv)
+                implementation(tools.RunScriptStr, tools.Config, tools.BuildDescConst)
                 runtimeOnly(jar.kotlin_scripting_jsr223)
             }
             val appPlainIde by projectConf {
                 implementation(tools.Config)
-                implementation(tools.toolPlainIdeListener)
                 implementation(libs.LocalHostSocket)
-                implementation(libs.SimpleScript)
+                implementation(libs.ScriptStr)
             }
         }
 
@@ -515,10 +518,14 @@ object $name {
             val libQws by projectConf
             val libQwsEmptyImpl by projectConf { implementation(libQws) }
             val SimpleReflect by projectConf
-            val SimpleScript by projectConf
             val ScriptStr by projectConf
             val ScriptStrRunEnv by projectConf
             val Util by projectConf
+            val OutputPanel by projectConf
+            val OutputPanelSystemOut by projectConf { implementation(OutputPanel) }
+            val KtsListener by projectConf {
+                implementation(Util, LocalHostSocket, OutputPanel)
+            }
         }
 
         object tools {
@@ -532,19 +539,17 @@ object $name {
                     implementation(TypeAlias)
                 }
                 val Lib by projectConf {
-                    implementation(TypeAlias)
+                    implementation(libs.OutputPanel, TypeAlias)
                 }
 
                 val KtsListener by project<ConfModule>(MainClassToRun.byName) {
                     implementation(libs.Util)
                     implementation(libs.LocalHostSocket)
                     implementation(libs.SimpleReflect)
-                    implementation(libs.ScriptStr)
-                    implementation(libs.ScriptStrRunEnv)
-                    implementation(ide.TypeAlias)
-                    implementation(ide.Lib)
+                    implementation(libs.ScriptStr, libs.ScriptStrRunEnv, RunScriptStr)
+                    implementation(libs.OutputPanel, libs.KtsListener)
+                    implementation(ide.Lib, ide.TypeAlias)
                     implementation(BuildDescConst)
-                    implementation(RunScriptStr)
                     implementation(Config)
                 }
 
@@ -553,7 +558,6 @@ object $name {
                 }
 
                 object script {
-                    val two by project<IdeScript> { implementation(libs.SimpleScript, RunSimpleScript) }
                     val three by project<IdeScript>()
                 }
             }
@@ -561,21 +565,9 @@ object $name {
             val BuildDescConst by projectConf
             val Config by projectConf
             val Module by projectConf
-            val RunSimpleScript by projectConf {
-                implementation(Config, BuildDescConst, Module, libs.LocalHostSocket, libs.Util)
-            }
             val RunScriptStr by projectConf {
                 implementation(Config, BuildDescConst, Module, libs.LocalHostSocket, libs.Util)
                 implementation(libs.ScriptStr, libs.ScriptStrRunEnv)
-            }
-            val toolPlainIdeListener by projectConf {
-                implementation(Config, libs.LocalHostSocket)
-            }
-            val toolPlainTypeAliasIdeListener by projectConf {
-                implementation(Config, ide.TypeAlias, libs.LocalHostSocket)
-            }
-            val toolSimpleScriptIdeListener by projectConf {
-                implementation(Config, libs.LocalHostSocket)
             }
         }
     }
@@ -622,12 +614,7 @@ object $name {
             root.tools.ide.KtsListener,
             root.tools.ide.action.ideAction,
             root.tools.script.one,
-            root.tools.ide.script.two,
             root.tools.ide.script.three,
-
-            root.tools.toolSimpleScriptIdeListener,
-            root.tools.toolPlainTypeAliasIdeListener,
-            root.tools.toolPlainIdeListener,
         )
         _tools.build_gradle_of_sub_projects()
         _tools.settings_gradle()

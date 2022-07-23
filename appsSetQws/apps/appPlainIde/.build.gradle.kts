@@ -3,8 +3,7 @@ plugins {
 }
 dependencies {
     implementation(project(":libs:LocalHostSocket"))
-    implementation(project(":libs:SimpleScript"))
+    implementation(project(":libs:ScriptStr"))
     implementation(project(":tools:Config"))
-    implementation(project(":tools:toolPlainIdeListener"))
 }
 sourceSets.main { java.srcDirs("src_main") }

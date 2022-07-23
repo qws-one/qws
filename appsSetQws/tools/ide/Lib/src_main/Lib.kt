@@ -52,12 +52,12 @@ object Lib {
         return null
     }
 
-    fun outputPanel(projectName: String, displayName: String, type: OutputPanel.Type = OutputPanel.Type.Run): OutputPanel? {
+    fun outputPanel(projectName: String, displayName: String, type: OutputIdePanel.Type = OutputIdePanel.Type.Run): OutputIdePanel? {
         val project = fromOpenProjects(projectName) ?: return null
         val descriptorDisplayName = type.name + displayName.replaceFirstChar { it.uppercaseChar() }
         for (runContentDescriptor in ExecutionMgr.getInstance(project).getContentManager().allDescriptors) {
             if (null != runContentDescriptor && runContentDescriptor.displayName == descriptorDisplayName) {
-                return OutputPanel(project.name, runContentDescriptor, descriptorDisplayName, type)
+                return OutputIdePanel(project.name, runContentDescriptor, descriptorDisplayName, type)
             }
         }
         return IdeDefaultActionGroup().let { group ->
@@ -74,7 +74,7 @@ object Lib {
             group.addAll(*consoleView.createConsoleActions())
             group.add(IdeExecutionCloseAction(executor, descriptor, project))
             ExecutionMgr.getInstance(project).getContentManager().showRunContent(executor, descriptor)
-            OutputPanel(project.name, descriptor, descriptorDisplayName, type)
+            OutputIdePanel(project.name, descriptor, descriptorDisplayName, type)
         }
     }
 }

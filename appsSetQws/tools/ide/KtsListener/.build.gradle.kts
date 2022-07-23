@@ -3,7 +3,9 @@ plugins {
     application
 }
 dependencies {
+    implementation(project(":libs:KtsListener"))
     implementation(project(":libs:LocalHostSocket"))
+    implementation(project(":libs:OutputPanel"))
     implementation(project(":libs:ScriptStr"))
     implementation(project(":libs:ScriptStrRunEnv"))
     implementation(project(":libs:SimpleReflect"))

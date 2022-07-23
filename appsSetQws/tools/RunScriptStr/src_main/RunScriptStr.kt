@@ -16,13 +16,13 @@ object RunScriptStr {
     ) {
         companion object {
             const val ide_scripting = "ide-scripting"
-            const val dummyChanelId = ToolSharedConfig.chanelIdDummy
+            const val dummyChanelId = ToolSharedConfig.chanelId_Dummy
             fun placeInModule(path: String) = arrayOf(ModuleUtil.placeInModule(path))
             fun placeInIdeScripting(path: String) = arrayOf(ModuleUtil.placeInIdeScripting(path))
             fun placeInModuleAndIdeScripting(path: String) = arrayOf(ModuleUtil.placeInModule(path), ModuleUtil.placeInIdeScripting(path))
             val conf get() = conf()
             fun conf(
-                chanelId: Int = ToolSharedConfig.chanelIdSimpleScriptListener,
+                chanelId: Int = ToolSharedConfig.chanelId_ScriptListener,
                 needBindings: Boolean = true,
                 needScriptPath: Boolean = false,
                 needSaveToFileDebug: Boolean = false,
@@ -104,12 +104,14 @@ object RunScriptStr {
         val ktFile = moduleInfo.srcDirs.firstNotNullOf { modulePlace.file(it).listFiles.firstOrNull { f -> ktFileName == f.name } }
         val moduleInfoFile = modulePlace.file(BuildDescConst.src_module_info).file(BuildDescConst.ModuleInfo + kt)
         val scriptFromFile = ktFile.readText().split(funMainArgs)[0].trim().plus("\n}")
+        var hasTypeAliasModule = false
         val additionalObjects = moduleInfo.dependenciesSrc.flatMap { dependencySrcRelativePath ->
+            if ("tools/ide/TypeAlias/src_main" == dependencySrcRelativePath) hasTypeAliasModule = true
             appsSetPlace.file(dependencySrcRelativePath).listFiles
                 .filter { it.isFile && it.extension == extensionKt && it.name !in ignore }
         }.map { HashedContent(it.name, it.readText()) }
         assembleScript(
-            appsSetPlace.file("tmp/__all_ide_TypeAlias.kt").readText(),
+            if (hasTypeAliasModule) appsSetPlace.file("tmp/__all_ide_TypeAlias.kt").readText() else "",
             additionalObjects,
             moduleInfoFile.readText(),
             scriptFromFile,
@@ -149,13 +151,15 @@ object RunScriptStr {
         val appsSetPlace = settingsGradleKts.up
         val moduleInfoFile = moduleInfoSrcDir.file(BuildDescConst.ModuleInfo + kt)
         val scriptFromFile = ktFile.readText().split(funMainArgs)[0].trim().plus("\n}")
+        var hasTypeAliasModule = false
         val additionalObjects = modulePlace.file(BuildDescConst.dependencies_src_txt).readLines()
             .flatMap { dependencySrcRelativePath ->
+                if ("tools/ide/TypeAlias/src_main" == dependencySrcRelativePath) hasTypeAliasModule = true
                 appsSetPlace.file(dependencySrcRelativePath.trim()).listFiles
                     .filter { it.isFile && it.extension == extensionKt && it.name !in ignore }
             }.map { HashedContent(it.name, it.readText()) }
         val scriptStr = assembleScript(
-            appsSetPlace.file("tmp/__all_ide_TypeAlias.kt").readText(),
+            if (hasTypeAliasModule) appsSetPlace.file("tmp/__all_ide_TypeAlias.kt").readText() else "",
             additionalObjects,
             moduleInfoFile.readText(),
             scriptFromFile,

@@ -2,6 +2,9 @@ object Main {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        println("${this::class.simpleName} args.size=${args.size} args=${args.toList()}")
+        println("MainTmp.main ")
+        System.getProperties().keys.toList().sortedBy { it.toString() }.forEach {
+            println("MainTmp.main $it")
+        }
     }
 }

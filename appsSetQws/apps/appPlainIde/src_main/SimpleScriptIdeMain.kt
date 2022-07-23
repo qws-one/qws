@@ -1,9 +1,8 @@
 //
 @Suppress("unused")
-object SimpleScriptIdeMain {
+object SimpleScriptIdeMain :ScriptStr{
 
-    fun script(args: Array<String>, bindings: Map<String, Any?>) = SimpleScript(args) {
-        println("qaqa")
+    override fun script(runtimeMap: Map<String, Any?>)=ScriptStr{
 //        val ideOutPrintln: (o: Any) -> Unit by bindings
 //        val ideErrPrintln: (o: Any) -> Unit by bindings
 //        val newScriptEngine: () -> javax.script.ScriptEngine? by bindings
@@ -33,6 +32,8 @@ object SimpleScriptIdeMain {
 //
 //        result(scriptEngine?.eval("12+3")?.toString() ?: "")
     }
-}
 
-fun main(args: Array<String>) = runSimpleScriptIdeKtFile(args)
+
+//    @JvmStatic
+//    fun main(args: Array<String>) = RunScriptStr(ModuleInfo)
+}
