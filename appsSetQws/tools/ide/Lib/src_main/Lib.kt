@@ -1,7 +1,4 @@
-//
-
-
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "DEPRECATION")
 object Lib {
 
     @Suppress("ClassName")

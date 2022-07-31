@@ -1,3 +1,3 @@
-interface KtScriptEngine {
-    fun eval(any: String): Any?
+interface ExecScriptEngine {
+    fun exec(any: String): Any?
 }

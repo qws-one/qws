@@ -18,7 +18,7 @@ object LocalHostSocket {
         }
 
         class UDS(val path: String, param: Param = default) : SocketConfig(java.net.StandardProtocolFamily.UNIX, param) {
-            override val address by lazy { java.net.UnixDomainSocketAddress.of(path) }
+            override val address by lazy { LocalFile(path).parentFile.mkdirs(); java.net.UnixDomainSocketAddress.of(path) }
             override fun description() = "uds: $path"
             override fun onFinally() {
                 java.nio.file.Files.deleteIfExists(address.path)
@@ -83,14 +83,16 @@ object LocalHostSocket {
     val uds get() = SocketConfig.defaultUDS
 
     fun tcp(port: Int) = SocketConfig.TCP.LocalHost(port)
-
     fun uds(path: String) = SocketConfig.UDS(path)
-
     fun uds(suffix: Int) = SocketConfig.UDS(tmpUdsFilePath(suffix))
+    fun uds(tmpDir: String, suffix: Int) = SocketConfig.UDS(tmpUdsFilePath(tmpPlace(tmpDir.trim().ifEmpty { tempDir }), suffix.toString()))
 
+    private const val dirName = "qws_LocalHostSocket"
+    private val tempDir by lazy { kotlin.io.path.Path(System.getProperty("user.home"), ".cache/").toAbsolutePath().toString() }
+    private fun tmpPlace(tmpDir: String) = kotlin.io.path.Path(tmpDir, dirName).toAbsolutePath().toString()
     fun tmpUdsFilePath(suffix: Int) = tmpUdsFilePath(suffix.toString())
-
-    fun tmpUdsFilePath(suffix: String) = "/var/run/user/1005/uds_tmp_$suffix"
+    fun tmpUdsFilePath(suffix: String) = tmpUdsFilePath(tmpPlace(tempDir), suffix)
+    fun tmpUdsFilePath(tmpPlace: String, suffix: String) = kotlin.io.path.Path(tmpPlace, "uds_tmp_$suffix").toAbsolutePath().toString()
 
     fun socketListen(block: SocketConfig.Runtime.() -> Unit) = listen(SocketConfig.defaultUDS, block)
 

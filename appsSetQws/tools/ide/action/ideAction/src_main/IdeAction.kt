@@ -21,6 +21,6 @@ object IdeAction : ScriptStr {
 
     @JvmStatic
     fun main(args: Array<String>) = RunScriptStr(ModuleInfo) {
-        conf(dummyChanelId, saveToPlace = placeInModule("$ide_scripting/$ide_scripting-IdeAction.kts"))
+        conf(dummyChanelId, saveToPlace = places.inModule("$ide_scripting/$ide_scripting-IdeAction.kts"))
     }
 }

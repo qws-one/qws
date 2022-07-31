@@ -1,9 +1,10 @@
 buildscript {
     ".gradle/_generated_app_init.gradle.kts".let {
         val ktsFile = file(it)
-        val ktsStr = """
+        val ktsStr = """${file("../src_init/BuildDescBase.kt").readText()}
 ${file("../src_init/BuildDesc.kt").readText()}
 ${file("../src_init/BuildDescConst.kt").readText()}
+${file("../src_init/BuildDescConstInternal.kt").readText()}
 tasks.register("appInit"){ doLast { BuildDesc.onAppInit(project.buildFile.absolutePath) } }
 """
         if (!ktsFile.exists() || ktsFile.readText() != ktsStr) {

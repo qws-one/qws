@@ -5,6 +5,7 @@ rootProject.buildFileName = ".root.gradle.kts"
 ":apps:appB".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":apps:appC".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":apps:appPlainIde".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
+":libs:BaseTypeAlias".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":libs:KtsListener".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":libs:LocalHostSocket".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":libs:OutputPanel".let { include(it); project(it).buildFileName = ".build.gradle.kts" }

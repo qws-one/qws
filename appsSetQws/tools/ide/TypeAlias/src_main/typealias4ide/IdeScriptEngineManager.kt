@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_PARAMETER")
+
 package typealias4ide
 
 class IdeScriptEngineManager {

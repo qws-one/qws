@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_PARAMETER")
+
 package typealias4ide
 
 import javax.swing.JComponent
@@ -27,7 +29,7 @@ open class AnAction {
 class DumbAwareAction {
 
     companion object {
-//        fun create(block: (AnActionEvent?) -> Unit): AnAction = TODO()
+        //fun create(block: (AnActionEvent?) -> Unit): AnAction = TODO()
         fun create(block: (AnActionEvent) -> Unit): AnAction = TODO()
     }
 }

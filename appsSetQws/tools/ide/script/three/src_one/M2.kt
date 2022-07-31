@@ -10,7 +10,8 @@ object M2 : ScriptStr {
     fun main(args: Array<String>) = RunScriptStr(ModuleInfo) {
         conf(
             ToolSharedConfig.chanelId_IdeScriptListener,
-            saveToPlace = placeInIdeScripting("$ide_scripting/$ide_scripting-M2.kts"),
+            runEnv = runEnv.copy(needTmpDirQuick = true),
+            saveToPlace = places.inIdeScripting("$ide_scripting/$ide_scripting-M2.kts"),
         )
     }
 }

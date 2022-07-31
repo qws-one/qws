@@ -1,0 +1,1 @@
+class FsItem(val path: String, val name: String)

@@ -12,7 +12,6 @@ interface BuildDescConst {
         val IdeProjectName = qws
 
         const val app__init = "app__init"
-        const val conf_place_of_ide_scripting = "conf.place.of.ide-scripting.txt"
     }
 
     val qws: String

@@ -1,9 +1,8 @@
+@file:Suppress("UNUSED_PARAMETER", "unused")
+
 package typealias4ide
 
-import java.nio.file.Path
 import javax.swing.JComponent
-
-
 
 
 open class HyperlinkInfo(block: (Project) -> Unit) {

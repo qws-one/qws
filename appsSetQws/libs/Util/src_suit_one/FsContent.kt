@@ -1,0 +1,1 @@
+class FsContent(val path: String, val fsName: String, content: String) : StrContent(content)

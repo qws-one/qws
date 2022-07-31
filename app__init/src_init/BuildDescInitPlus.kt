@@ -6,10 +6,10 @@ object BuildDescInitPlus {
     fun main(args: Array<String>) {
         println(" BuildDescInitPlus.main ${args.toList()}")
         BuildDesc.onAppInit(java.io.File(BuildDescInit.place).absolutePath)
-        with(BuildDesc) {
-            libTools.mapConfigured.values.forEach { projectsSetPlace ->
+        with(BuildDescBase) {
+            BuildDescBase.lib.refOfObjLib.mapConfigured.values.forEach { projectsSetPlace ->
                 projectsSetPlace.mapOfProjects.values.forEach { subProject ->
-                    if (subProject.mainClassToRun.valid) {
+                    if (subProject.mainUnit.validToRun) {
                         val dir = file(projectsSetPlace.placeDir, subProject.moduleRelativePath())
                         val processBuilder = ProcessBuilder("$opt_local_gradle/bin/gradle", "${subProject.id}:run")
                             .apply { environment().clear() }
