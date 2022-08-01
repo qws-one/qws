@@ -1,5 +1,6 @@
 //
 
+@Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
 object OutputPanelSystemOut : OutputPanel {
     override infix fun println(msg: Any?) = System.out.println(msg)
     override val out = object : OutputPanel.Out {

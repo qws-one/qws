@@ -1,7 +1,6 @@
 @Suppress("ClassName", "MemberVisibilityCanBePrivate", "unused")
 class BuildDesc : BuildDescBase() {
 
-    @Suppress("RemoveRedundantQualifierName")
     object root : appsSetConf("appsSetQws") {
         override val settings by Settings
 
@@ -12,7 +11,7 @@ class BuildDesc : BuildDescBase() {
             val appB by project<ConfFresh> { implementation(libs.libQws, libs.libQwsEmptyImpl, libs.LocalHostSocket) }
             val appC by projectConf(src_main_kotlin_and_java) {
                 implementation(appA, libs.libQws, libs.LocalHostSocket, libs.SimpleReflect)
-                implementation(libs.Util, libs.OutputPanel, libs.KtsListener, libs.OutputPanelSystemOut)
+                implementation(libs.Util, libs.logs.OutputPanel, libs.KtsListener, libs.logs.OutputPanelSystemOut)
                 implementation(libs.ScriptStr, libs.ScriptStrRunEnv)
                 implementation(tools.RunScriptStr, tools.Config, tools.BuildDescConst)
                 runtimeOnly(jar.kotlin_scripting_jsr223)
@@ -25,18 +24,22 @@ class BuildDesc : BuildDescBase() {
         }
 
         object libs {
+            object logs {
+                val LogSimple by projectConf
+                val OutputPanel by projectConf
+                val OutputPanelSystemOut by projectConf { implementation(OutputPanel) }
+            }
+
             val BaseTypeAlias by projectConf(MainUnit.plain) // for 'BuildDescGen.descUnit.BaseTypeAlias.name + kt'
-            val LocalHostSocket by projectConf { implementation(BaseTypeAlias) }
+            val LocalHostSocket by projectConf { implementation(BaseTypeAlias, logs.LogSimple) }
             val libQws by projectConf
             val libQwsEmptyImpl by projectConf { implementation(libQws) }
             val SimpleReflect by projectConf
             val ScriptStr by projectConf
             val ScriptStrRunEnv by projectConf
             val Util by projectConf(src_main, "src_suit_one")
-            val OutputPanel by projectConf
-            val OutputPanelSystemOut by projectConf { implementation(OutputPanel) }
             val KtsListener by projectConf {
-                implementation(Util, LocalHostSocket, OutputPanel)
+                implementation(Util, LocalHostSocket, logs.OutputPanel)
             }
         }
 
@@ -51,16 +54,16 @@ class BuildDesc : BuildDescBase() {
                     implementation(TypeAlias)
                 }
                 val Lib by projectConf {
-                    implementation(libs.OutputPanel, TypeAlias)
+                    implementation(libs.logs.OutputPanel, TypeAlias)
                 }
 
-                val KtsListener by project<ConfModule>(MainUnit.toRun) {
+                val KtsListener by project<ConfModule>(MainUnit toRun "IdeListener") {
                     implementation(libs.Util)
                     implementation(libs.LocalHostSocket)
                     implementation(libs.SimpleReflect)
                     implementation(libs.ScriptStr, libs.ScriptStrRunEnv, RunScriptStr)
-                    implementation(libs.OutputPanel, libs.KtsListener)
-                    implementation(ide.Lib, ide.TypeAlias)
+                    implementation(libs.logs.OutputPanel, libs.KtsListener)
+                    implementation(Lib, TypeAlias)
                     implementation(BuildDescConst)
                     implementation(Config)
                 }
@@ -113,7 +116,7 @@ class BuildDesc : BuildDescBase() {
         val objectIdeScriptDependencies = arrayOf(
             root.tools.ide.TypeAlias,
             root.tools.ide.Lib,
-            root.libs.OutputPanel,
+            root.libs.logs.OutputPanel,
         )
         val objectScriptDependencies = arrayOf(
             root.libs.Util,
@@ -139,8 +142,9 @@ class BuildDesc : BuildDescBase() {
                 root.tools.script.one,
                 root.tools.ide.script.three,
             )
-            //addConst(root.tools.BuildDescConst, root.libs.BaseTypeAlias, root.tools.ide.TypeAlias)
             root.tools.BuildDescConst.constGen(
+                root.libs.logs.LogSimple,
+                root.libs.LocalHostSocket,
                 root.libs.BaseTypeAlias,
                 root.tools.ide.TypeAlias,
             )
@@ -199,6 +203,12 @@ idea.project.settings { //https://github.com/JetBrains/gradle-idea-ext-plugin/wi
             val init = allInit(scriptFile, writeChangesMode)
             println(" BuildDesc placeDir=${init.placeDir} configured=${lib.mapConfigured.keys}")
             return init
+        }
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            println(" BuildDesc.main ${args.toList()}")
+            onAppInit(java.io.File(BuildDescInit.place).absolutePath)
         }
     }
 }

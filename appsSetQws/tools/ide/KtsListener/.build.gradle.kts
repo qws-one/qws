@@ -5,11 +5,11 @@ plugins {
 dependencies {
     implementation(project(":libs:KtsListener"))
     implementation(project(":libs:LocalHostSocket"))
-    implementation(project(":libs:OutputPanel"))
     implementation(project(":libs:ScriptStr"))
     implementation(project(":libs:ScriptStrRunEnv"))
     implementation(project(":libs:SimpleReflect"))
     implementation(project(":libs:Util"))
+    implementation(project(":libs:logs:OutputPanel"))
     implementation(project(":tools:BuildDescConst"))
     implementation(project(":tools:Config"))
     implementation(project(":tools:Module"))
@@ -20,7 +20,7 @@ dependencies {
 sourceSets.main { java.srcDirs("src_main", "src_module_info") }
 
 application {
-    mainClass.set("KtsListener")
+    mainClass.set("IdeListener")
 }
 //                              --build-file Note: This property is deprecated and will be removed in the next major version of Gradle.
 // /opt/local/gradle/bin/gradle --build-file .../appsSetQws/tools/ide/KtsListener/.build.gradle.kts run

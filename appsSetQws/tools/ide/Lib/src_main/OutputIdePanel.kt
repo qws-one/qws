@@ -42,6 +42,7 @@ class OutputIdePanel(val projectName: String, val descriptor: IdeRunContentDescr
         consoleView?.printHyperlink(msg.string(), IdeHyperlinkInfo { block() })
     }
 
+    @Suppress("DEPRECATION")
     override fun toFrontRunContent(): OutputIdePanel {
         ProjectMgr.getInstance().openProjects.forEach {
             if (projectName == it.name) {

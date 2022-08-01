@@ -245,32 +245,6 @@ $applicationConf""".trim()
                 prj.place(dependencies_src_txt) update prj.dependenciesSrcList().joinToString("\n")
             }
 
-            fun addConst(to: SubProject, vararg list: SubProject) {
-                addBuildDescGen(to, list)
-                val inMap = mutableMapOf<String, String>()
-                list.forEach { prj ->
-//                    inMap["idOf${prj.name}"] = "\"${prj.id}\""
-//                    inMap["nameOf${prj.name}"] = "\"${prj.name}\""
-                    inMap["srcDirOf${prj.name}"] = "\"${prj.pathOfKotlinSrcDir()}\""
-                }
-                "BuildDescConstGen".let { file(placeDir, "${to.pathOfKotlinSrcDir()}/$it.kt") update interfaceFrom(it, inMap) }
-            }
-
-            fun interfaceFrom(interfaceName: String, inMap: Map<String, String>): String {
-                var interfaceContent = ""
-                var companionContent = ""
-                for ((name, value) in inMap) {
-                    val type = "String"
-                    companionContent += "        override val $name = $value\n"
-                    interfaceContent += "    val $name: $type\n"
-                }
-                return """interface $interfaceName {
-    companion object : $interfaceName {
-$companionContent    }
-
-$interfaceContent}"""
-            }
-
             fun addBuildDescGen(to: SubProject, list: Array<out SubProject>) {
                 var objects = ""
                 var objectsAsVal = ""
@@ -460,6 +434,8 @@ object $name {
         companion object {
             val empty = MainUnit("", emptyMap(), Type.Plain, false)
             val toRun = MainUnit("", emptyMap(), Type.ToRun, true)
+            infix fun toRun(name: String) = MainUnit(name.trim(), emptyMap(), Type.ToRun, false)
+            fun toRun(name: String, vararg const: Pair<String, String>) = MainUnit(name.trim(), const.toMap(LinkedHashMap()), Type.ToRun, false)
             val plain = MainUnit("", emptyMap(), Type.Plain, true)
             fun plain(vararg const: Pair<String, String>) = MainUnit("", const.toMap(LinkedHashMap()), Type.Plain, true)
             fun plain(needName: Boolean = true, vararg const: Pair<String, String>) = MainUnit("", const.toMap(LinkedHashMap()), Type.Plain, needName)
@@ -555,8 +531,7 @@ object $name {
 
         fun localBuildDir() = _tools.localBuildDir()
         fun active(vararg list: SubProject) = _tools.active(*list)
-        fun SubProject.constGen(vararg list: SubProject) = _tools.addConst(this, *list)
-        //fun addConst(to: SubProject, vararg list: SubProject) = _tools.addConst(to, *list)
+        fun SubProject.constGen(vararg list: SubProject) = _tools.addBuildDescGen(this, list)
     }
 
     class app(name: String) : appsSetConf(name) {

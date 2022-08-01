@@ -1,14 +1,13 @@
 //
 
 
+@Suppress("MemberVisibilityCanBePrivate")
 object RunScriptStr : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs {
 
-    object Const : BuildDescConstPlus by BuildDescConstPlus, BuildDescConstGen by BuildDescConstGen, BuildDescGen by BuildDescGen
+    object Const : BuildDescConstPlus by BuildDescConstPlus, BuildDescGen by BuildDescGen
 
     class Tools {
         abstract class ConfBase {
-            abstract fun <T : ConfBase> updateBeanForRuntime(forRuntime: ForRuntime): T
-
             abstract val runEnv: RunEnv
             abstract val forRuntime: ForRuntime
 
@@ -48,11 +47,6 @@ object RunScriptStr : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs {
                     forRuntime = ForRuntime()
                 )
             }
-
-            override fun <T : ConfBase> updateBeanForRuntime(forRuntime: ForRuntime): T {
-                @Suppress("UNCHECKED_CAST")
-                return copy(forRuntime = forRuntime) as T
-            }
         }
 
         data class Conf(
@@ -88,11 +82,6 @@ object RunScriptStr : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs {
                     forRuntime = ForRuntime(args = args.toList())
                 )
             }
-
-            override fun <T : ConfBase> updateBeanForRuntime(forRuntime: ForRuntime): T {
-                @Suppress("UNCHECKED_CAST")
-                return copy(forRuntime = forRuntime) as T
-            }
         }
     }
 
@@ -110,7 +99,6 @@ object RunScriptStr : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs {
         this::class.simpleName?.plus(kt) ?: TODO(),
         scriptStrEnv + kt,
     )
-
 
     private val appInitDir get() = currentDir.lookupToParentByName(BuildDescConst.app__init) ?: TODO()
     private val ModuleUtil.Info.appsPlaces: List<FsPath>
@@ -168,40 +156,22 @@ object RunScriptStr : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs {
     }
 
     private fun <T : Tools.ConfBase> updateRunEnv(appInitFsPath: FsPath, conf: Tools.ConfBase): T = with(Const) {
-        conf.updateBeanForRuntime(
-            forRuntime = conf.forRuntime.copy(
-                tmpDirBig = if (conf.runEnv.needTmpDirBig) appInitFsPath.file(conf_place.of__tmp_dir_big).fromFile
-                    .path.ifEmpty { defaultTmpDirBig } else "",
-                tmpDirQuick = if (conf.runEnv.needTmpDirQuick) appInitFsPath.file(conf_place.of__tmp_dir_quick).fromFile
-                    .path.ifEmpty { defaultTmpDirQuick } else "",
-            )
+        val forRuntime = conf.forRuntime.copy(
+            tmpDirBig = if (conf.runEnv.needTmpDirBig) appInitFsPath.file(conf_place.of__tmp_dir_big).fromFile
+                .path.ifEmpty { defaultTmpDirBig } else "",
+            tmpDirQuick = if (conf.runEnv.needTmpDirQuick) appInitFsPath.file(conf_place.of__tmp_dir_quick).fromFile
+                .path.ifEmpty { defaultTmpDirQuick } else "",
         )
+        @Suppress("UNCHECKED_CAST")
+        return when (conf) {
+            is Tools.ConfLite -> conf.copy(forRuntime = forRuntime)
+            is Tools.Conf -> conf.copy(forRuntime = forRuntime)
+            else -> TODO()
+        } as T
     }
-
-//    private fun <T : ConfBase> updateRunEnvReified2(appInitFsPath: FsPath, conf: T): T {
-//        TODO()
-//    }
-//
-//    private inline fun <reified T : ConfBase> updateRunEnvReified(appInitFsPath: FsPath, conf: T): T {
-//        val forRuntime = with(Const) {
-//            conf.forRuntime.copy(
-//                tmpDirBig = if (conf.runEnv.needTmpDirBig) appInitFsPath.file(conf_place.of__tmp_dir_big).fromFile
-//                    .path.ifEmpty { defaultTmpDirBig } else "",
-//                tmpDirQuick = if (conf.runEnv.needTmpDirQuick) appInitFsPath.file(conf_place.of__tmp_dir_quick).fromFile
-//                    .path.ifEmpty { defaultTmpDirQuick } else "",
-//            )
-//        }
-//        return when (conf) {
-//            is ConfLite -> conf.copy(forRuntime = forRuntime)
-//            is Conf -> conf.copy(forRuntime = forRuntime)
-//            else -> TODO()
-//        } as T
-//    }
 
     fun buildConfLite(block: Tools.ConfLite.Lite.() -> Tools.ConfLite): Tools.ConfLite {
         return updateRunEnv(appInitDir.fsPath, Tools.ConfLite.Lite.block())
-//        return updateRunEnvReified2(appInitDir.fsPath, Tools.ConfLite.Lite.block())
-//        return updateRunEnvReified(appInitDir.fsPath, Tools.ConfLite.Lite.block())
     }
 
     fun buildConf(scriptPath: String, block: Tools.Conf.Companion.() -> Tools.Conf): Tools.Conf {
@@ -255,20 +225,26 @@ object RunScriptStr : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs {
         }
     }
 
+    fun List<String>.additionalObjects(appsSetPlace: FsPath, hasTypeAliasModule: java.util.concurrent.atomic.AtomicBoolean): List<FsContent> = with(Const) {
+        flatMap { dependencySrcRelativePath ->
+            if (descUnit.TypeAlias.srcDir == dependencySrcRelativePath) hasTypeAliasModule.set(true)
+            appsSetPlace.file(dependencySrcRelativePath.trim()).listFiles.let {
+                if (descUnit.LocalHostSocket.srcDir == dependencySrcRelativePath) it + appsSetPlace.file(descUnit.LogSimple.srcDir).listFiles
+                else it
+            }.filter { it.isFile && it.extension == extensionKt && it.name !in ignore }
+        }.map { it.fsContent }
+    }
+
     fun fromModuleInfo(className: String, moduleInfo: ModuleUtil.Info, conf: Tools.Conf): String = with(Const) {
         val (_, appInitPlace, appsSetPlace, modulePlace) = moduleInfo.appsPlaces
         val ktFileName = className + kt
         val ktFile = moduleInfo.srcDirs.firstNotNullOf { modulePlace.file(it).listFiles.firstOrNull { f -> ktFileName == f.name } }
         val moduleInfoFile = modulePlace.file(BuildDescConst.src_module_info).file(BuildDescConst.ModuleInfo + kt)
         val scriptFromFile = ktFile.readText().split(funMainArgs)[0].trim().plus("\n}")
-        var hasTypeAliasModule = false
-        val additionalObjects = moduleInfo.dependenciesSrc.flatMap { dependencySrcRelativePath ->
-            if (srcDirOfTypeAlias == dependencySrcRelativePath) hasTypeAliasModule = true
-            appsSetPlace.file(dependencySrcRelativePath).listFiles
-                .filter { it.isFile && it.extension == extensionKt && it.name !in ignore }
-        }.map { it.fsContent }
+        val hasTypeAliasModule = java.util.concurrent.atomic.AtomicBoolean(false)
+        val additionalObjects = moduleInfo.dependenciesSrc.additionalObjects(appsSetPlace, hasTypeAliasModule)
         return assembleScript(
-            if (hasTypeAliasModule) appsSetPlace.file(allIdeTypeAlias).readText() else "",
+            if (hasTypeAliasModule.get()) appsSetPlace.file(allIdeTypeAlias).readText() else "",
             descUnit.BaseTypeAlias.run { appsSetPlace.file(srcDir).file(name + kt).fsContent },
             additionalObjects,
             moduleInfoFile.readText(),
@@ -290,16 +266,11 @@ object RunScriptStr : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs {
         val appInitDir = appsSetPlace.lookupToParentByName(app__init) ?: TODO()
         val moduleInfoFile = moduleInfoSrcDir.file(BuildDescConst.ModuleInfo + kt)
         val scriptFromFile = ktFile.readText().split(funMainArgs)[0].trim().plus("\n}")
-        var hasTypeAliasModule = false
-        val additionalObjects = modulePlace.file(BuildDescConst.dependencies_src_txt).readLines()
-            .flatMap { dependencySrcRelativePath ->
-                if (srcDirOfTypeAlias == dependencySrcRelativePath) hasTypeAliasModule = true
-                appsSetPlace.file(dependencySrcRelativePath.trim()).listFiles
-                    .filter { it.isFile && it.extension == extensionKt && it.name !in ignore }
-            }.map { it.fsItem.fileContent }
-
+        val hasTypeAliasModule = java.util.concurrent.atomic.AtomicBoolean(false)
+        val additionalObjects = modulePlace.file(BuildDescConst.dependencies_src_txt)
+            .readLines().additionalObjects(appsSetPlace.fsPath, hasTypeAliasModule)
         val scriptStr = assembleScript(
-            if (hasTypeAliasModule) appsSetPlace.file(allIdeTypeAlias).readText() else "",
+            if (hasTypeAliasModule.get()) appsSetPlace.file(allIdeTypeAlias).readText() else "",
             descUnit.BaseTypeAlias.run { appsSetPlace.file(srcDir).file(name + kt).fsContent },
             additionalObjects,
             moduleInfoFile.readText(),

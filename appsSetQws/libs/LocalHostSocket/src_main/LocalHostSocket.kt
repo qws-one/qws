@@ -1,4 +1,37 @@
 object LocalHostSocket {
+    fun configureToSystemOut() {
+        log.funDebug = LogSimpleSystemOut::debug
+        log.funInfo = LogSimpleSystemOut::info
+        log.funErr = LogSimpleSystemOut::err
+    }
+
+    fun configureLogDebugTo(block: (Any?) -> Unit) {
+        log.funDebug = block
+    }
+
+    fun configureLogInfoTo(block: (Any?) -> Unit) {
+        log.funInfo = block
+    }
+
+    fun configureLogErrTo(block: (Any?) -> Unit) {
+        log.funErr = block
+    }
+
+    @Suppress("ClassName")
+    private object log : LogSimple {
+        private object empty : LogSimple {
+            override fun debug(msg: Any?) = Unit
+            override fun info(msg: Any?) = Unit
+            override fun err(msg: Any?) = Unit
+        }
+
+        var funDebug: (Any?) -> Unit = empty::info
+        var funInfo: (Any?) -> Unit = empty::info
+        var funErr: (Any?) -> Unit = empty::err
+        override fun debug(msg: Any?) = funDebug(msg)
+        override fun info(msg: Any?) = funInfo(msg)
+        override fun err(msg: Any?) = funErr(msg)
+    }
 
     sealed class SocketConfig(val protocolFamily: java.net.ProtocolFamily, val param: Param) {
         val byteBufferInputSize = param.byteBufferInputSize
@@ -7,6 +40,8 @@ object LocalHostSocket {
 
         abstract val address: java.net.SocketAddress
         abstract fun description(): String
+        abstract val isFree: Boolean
+        abstract fun tryToFree(): Boolean
         open fun onFinally() {}
 
         sealed class TCP(val port: Int, param: Param) : SocketConfig(java.net.StandardProtocolFamily.INET, param) {
@@ -14,12 +49,16 @@ object LocalHostSocket {
             class LocalHost(port: Int, param: Param = default) : TCP(port, param) {
                 override val address by lazy { java.net.InetSocketAddress(java.net.Inet4Address.getLoopbackAddress(), port) }
                 override fun description() = "tcp: 127.0.0.1:$port"
+                override val isFree get(): Boolean = true //TODO("Not yet implemented")
+                override fun tryToFree(): Boolean = true //?maybe waite...? TODO("Not yet implemented")
             }
         }
 
-        class UDS(val path: String, param: Param = default) : SocketConfig(java.net.StandardProtocolFamily.UNIX, param) {
-            override val address by lazy { LocalFile(path).parentFile.mkdirs(); java.net.UnixDomainSocketAddress.of(path) }
-            override fun description() = "uds: $path"
+        class UDS(val fsPath: String, param: Param = default) : SocketConfig(java.net.StandardProtocolFamily.UNIX, param) {
+            override val address by lazy { LocalFile(fsPath).parentFile.mkdirs(); java.net.UnixDomainSocketAddress.of(fsPath) }
+            override fun description() = "uds: $fsPath"
+            override val isFree get() = !LocalFile(fsPath).exists()
+            override fun tryToFree() = LocalFile(fsPath).delete().also { log debug "LocalHostSocket: result of tryToFree '$fsPath' is: $it" }
             override fun onFinally() {
                 java.nio.file.Files.deleteIfExists(address.path)
             }
@@ -56,9 +95,8 @@ object LocalHostSocket {
             fun uds(path: String, param: Param = default) = UDS(path, param)
 
             fun instanceWithUpdatedParams(socketConfig: SocketConfig, param: Param): SocketConfig {
-                @Suppress("REDUNDANT_ELSE_IN_WHEN")
-                val result = when (socketConfig) {
-                    is UDS -> UDS(socketConfig.path, param)
+                @Suppress("REDUNDANT_ELSE_IN_WHEN") val result = when (socketConfig) {
+                    is UDS -> UDS(socketConfig.fsPath, param)
                     is TCP.LocalHost -> TCP.LocalHost(socketConfig.port, param)
                     else -> TODO()
                 }
@@ -97,11 +135,16 @@ object LocalHostSocket {
     fun socketListen(block: SocketConfig.Runtime.() -> Unit) = listen(SocketConfig.defaultUDS, block)
 
     fun listen(socketConfig: SocketConfig, block: SocketConfig.Runtime.() -> Unit) {
-        println("LocalHost.listen on ${socketConfig.description()}")
+        if (!socketConfig.isFree) "Error start listen on ${socketConfig.description()}, looks like already in use.".let {
+            log err it
+            throw RuntimeException(it)
+        }
+        log info "LocalHostSocket.listen on ${socketConfig.description()}"
         try {
             java.nio.channels.ServerSocketChannel.open(socketConfig.protocolFamily).use { serverSocketChannel ->
                 serverSocketChannel.bind(socketConfig.address)
                 for (connectionCount in 0 until socketConfig.acceptClientConnectionCount) {
+                    var closeChannel = false
                     serverSocketChannel.accept().use { socketChannel ->
                         val byteBufferIn = java.nio.ByteBuffer.allocate(socketConfig.byteBufferInputSize)
                         val readByteCount = socketChannel.read(byteBufferIn)
@@ -110,22 +153,22 @@ object LocalHostSocket {
                             byteBufferIn.rewind()
                             byteBufferIn.get(byteArrayIn)
                             val strIn = byteArrayIn.decodeToString()
-                            var closeChannel = false
                             var strOut = ""
-                            SocketConfig.Runtime(
-                                connectionIndex = connectionCount,
+                            SocketConfig.Runtime(connectionIndex = connectionCount,
                                 msg = strIn,
                                 param = socketConfig.param,
                                 closeChannel = { closeChannel = true },
-                                result = { strOut = it }
-                            ).block()
+                                result = { strOut = it }).block()
+                            log debug "LocalHostSocket.listen on ${socketConfig.description()} receive: '$strOut'"
                             val byteBufferOut = java.nio.ByteBuffer.wrap(strOut.toByteArray())
                             socketChannel.write(byteBufferOut)
-                            if (closeChannel) serverSocketChannel.close()
                         }
                     }
+                    if (closeChannel) return
                 }
             }
+        } catch (e: Exception) {
+            log err e
         } finally {
             socketConfig.onFinally()
         }
@@ -134,18 +177,22 @@ object LocalHostSocket {
     fun socketSend(str: String): String = send(SocketConfig.defaultUDS, str)
 
     fun send(socketConfig: SocketConfig, str: String): String {
-        java.nio.channels.SocketChannel.open(socketConfig.address).use { socketChannel ->
-            val buf = java.nio.ByteBuffer.wrap(str.toByteArray())
-            socketChannel.write(buf)
-            val byteBufferIn = java.nio.ByteBuffer.allocate(socketConfig.byteBufferInputSize)
-            val readByteCount = socketChannel.read(byteBufferIn)
-            if (readByteCount > 0) {
-                val byteArrayIn = ByteArray(readByteCount)
-                byteBufferIn.rewind()
-                byteBufferIn.get(byteArrayIn)
-                val strIn = byteArrayIn.decodeToString()
-                return strIn
+        try {
+            java.nio.channels.SocketChannel.open(socketConfig.address).use { socketChannel ->
+                val buf = java.nio.ByteBuffer.wrap(str.toByteArray())
+                socketChannel.write(buf)
+                val byteBufferIn = java.nio.ByteBuffer.allocate(socketConfig.byteBufferInputSize)
+                val readByteCount = socketChannel.read(byteBufferIn)
+                if (readByteCount > 0) {
+                    val byteArrayIn = ByteArray(readByteCount)
+                    byteBufferIn.rewind()
+                    byteBufferIn.get(byteArrayIn)
+                    val strIn = byteArrayIn.decodeToString()
+                    return strIn
+                }
             }
+        } catch (e: Exception) {
+            log err e
         }
         return ""
     }
