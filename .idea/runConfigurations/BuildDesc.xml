@@ -2,6 +2,7 @@
   <configuration default="false" name="BuildDesc" type="JetRunConfigurationType" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="BuildDesc" />
     <module name="app__init" />
+    <option name="PROGRAM_PARAMETERS" value="app__init/src_init/BuildDesc.kt" />
     <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />

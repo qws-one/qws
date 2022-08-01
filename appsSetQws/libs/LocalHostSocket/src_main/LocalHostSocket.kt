@@ -159,7 +159,8 @@ object LocalHostSocket {
                                 param = socketConfig.param,
                                 closeChannel = { closeChannel = true },
                                 result = { strOut = it }).block()
-                            log debug "LocalHostSocket.listen on ${socketConfig.description()} receive: '$strOut'"
+                            log debug "LocalHostSocket.listen on ${socketConfig.description()} receive: '$strIn'"
+                            log debug "LocalHostSocket.listen on ${socketConfig.description()} result : '$strOut'"
                             val byteBufferOut = java.nio.ByteBuffer.wrap(strOut.toByteArray())
                             socketChannel.write(byteBufferOut)
                         }

@@ -19,7 +19,7 @@ object EchoListener {
         val scriptListener = object : ExecScriptListener(socket) {
             override fun newScriptEngine() = javax.script.ScriptEngineManager().getEngineByExtension("kts")?.let {
                 object : ExecEngine {
-                    override fun exec(any: String) = any
+                    override fun exec(any: String) = "echo: '$any'"
                 }
             }
         }

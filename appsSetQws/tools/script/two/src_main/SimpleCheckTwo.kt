@@ -1,4 +1,4 @@
-object SimpleCheck {
+object SimpleCheckTwo {
     @JvmStatic
     fun main(args: Array<String>) {
         val conf = RunScriptStr.buildConfLite {
@@ -8,8 +8,8 @@ object SimpleCheck {
         }
         LocalHostSocket.configureToSystemOut()
         val socket = LocalHostSocket.uds(conf.forRuntime.tmpDirQuick, ToolSharedConfig.chanelId_ScriptListener)
-
         assert(socket.send("1+2") == "3")
+        assert(socket.send("3+2") == "5")
 //        val res = socket.send("q")
         val res = socket.send("bindings")
 //        val res = socket.send("close")

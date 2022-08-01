@@ -28,3 +28,4 @@ rootProject.buildFileName = ".root.gradle.kts"
 ":tools:ide:action:ideAction".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":tools:ide:script:three".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":tools:script:one".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
+":tools:script:two".let { include(it); project(it).buildFileName = ".build.gradle.kts" }

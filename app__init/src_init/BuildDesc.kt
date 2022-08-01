@@ -46,6 +46,7 @@ class BuildDesc : BuildDescBase() {
         object tools {
             object script {
                 val one by project<Script>()
+                val two by project<ConfModule> { implementation(libs.LocalHostSocket, libs.ScriptStr, RunScriptStr, Config) }
             }
 
             object ide {
@@ -140,12 +141,14 @@ class BuildDesc : BuildDescBase() {
                 root.tools.ide.KtsListener,
                 root.tools.ide.action.ideAction,
                 root.tools.script.one,
+                root.tools.script.two,
                 root.tools.ide.script.three,
             )
             root.tools.BuildDescConst.constGen(
                 root.libs.logs.LogSimple,
                 root.libs.LocalHostSocket,
                 root.libs.BaseTypeAlias,
+                root.tools.RunScriptStr,
                 root.tools.ide.TypeAlias,
             )
             _tools.build_gradle_of_sub_projects()
@@ -208,7 +211,7 @@ idea.project.settings { //https://github.com/JetBrains/gradle-idea-ext-plugin/wi
         @JvmStatic
         fun main(args: Array<String>) {
             println(" BuildDesc.main ${args.toList()}")
-            onAppInit(java.io.File(BuildDescInit.place).absolutePath)
+            onAppInit(LocalFile(args[0]).absolutePath)
         }
     }
 }
