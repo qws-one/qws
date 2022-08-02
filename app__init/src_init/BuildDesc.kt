@@ -47,6 +47,7 @@ class BuildDesc : BuildDescBase() {
             object script {
                 val one by project<Script>()
                 val two by project<ConfModule> { implementation(libs.LocalHostSocket, libs.ScriptStr, RunScriptStr, Config) }
+                val four by projectConf { implementation(libs.ScriptStr, RunScriptStr) }
             }
 
             object ide {
@@ -142,12 +143,14 @@ class BuildDesc : BuildDescBase() {
                 root.tools.ide.action.ideAction,
                 root.tools.script.one,
                 root.tools.script.two,
+                root.tools.script.four,
                 root.tools.ide.script.three,
             )
             root.tools.BuildDescConst.constGen(
                 root.libs.logs.LogSimple,
                 root.libs.LocalHostSocket,
                 root.libs.BaseTypeAlias,
+                root.libs.ScriptStrRunEnv,
                 root.tools.RunScriptStr,
                 root.tools.ide.TypeAlias,
             )

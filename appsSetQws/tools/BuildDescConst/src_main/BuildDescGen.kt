@@ -4,6 +4,7 @@ interface BuildDescGen {
         val LogSimple = Companion.LogSimple
         val LocalHostSocket = Companion.LocalHostSocket
         val BaseTypeAlias = Companion.BaseTypeAlias
+        val ScriptStrRunEnv = Companion.ScriptStrRunEnv
         val RunScriptStr = Companion.RunScriptStr
         val TypeAlias = Companion.TypeAlias
     }
@@ -22,6 +23,11 @@ interface BuildDescGen {
         object BaseTypeAlias {
             const val name = "BaseTypeAlias"
             const val srcDir = "libs/BaseTypeAlias/src_main"
+        }
+
+        object ScriptStrRunEnv {
+            const val name = "ScriptStrRunEnv"
+            const val srcDir = "libs/ScriptStrRunEnv/src_main"
         }
 
         object RunScriptStr {

@@ -178,6 +178,7 @@ object LocalHostSocket {
     fun socketSend(str: String): String = send(SocketConfig.defaultUDS, str)
 
     fun send(socketConfig: SocketConfig, str: String): String {
+        //log info socketConfig.description()
         try {
             java.nio.channels.SocketChannel.open(socketConfig.address).use { socketChannel ->
                 val buf = java.nio.ByteBuffer.wrap(str.toByteArray())

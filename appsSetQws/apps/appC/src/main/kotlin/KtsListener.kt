@@ -3,7 +3,6 @@
 object KtsListener {
     @JvmStatic
     fun main(args: Array<String>) {
-        val chanelId = ToolSharedConfig.chanelId_ScriptListener
         val conf = RunScriptStr.buildConfLite {
             conf(
                 runEnv = runEnv.copy(needTmpDirQuick = true),
@@ -14,7 +13,7 @@ object KtsListener {
         LocalHostSocket.configureLogInfoTo { outputPanel.out.println(it) }
         LocalHostSocket.configureLogErrTo { outputPanel.err.println(it) }
 
-        val socket = LocalHostSocket.uds(conf.forRuntime.tmpDirQuick, chanelId).params(acceptClientConnectionCount = Int.MAX_VALUE)
+        val socket = LocalHostSocket.uds(conf.forRuntime.tmpDirQuick, conf.chanelId).params(acceptClientConnectionCount = Int.MAX_VALUE)
         if (!socket.isFree) {
             throw RuntimeException(" looks like already in use")
             //socket.tryToFree()
