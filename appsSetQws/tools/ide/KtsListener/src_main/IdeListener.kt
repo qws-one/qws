@@ -37,6 +37,7 @@ object IdeListener : ScriptStr {
     fun main(args: Array<String>) = RunScriptStr(ModuleInfo) {
         conf(
             dummyChanelId,
+            needBindings = true,
             runEnv = runEnv.copy(needTmpDirQuick = true),
             saveToPlace = places.inModuleAndIdeScripting("$ide_scripting/$ide_scripting-KtsListener.kts")
         )

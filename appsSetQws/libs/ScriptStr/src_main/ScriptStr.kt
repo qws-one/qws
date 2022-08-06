@@ -1,5 +1,3 @@
-//
-
 interface ScriptStr {
 
     fun script(runtimeMap: Map<String, Any?>): String
@@ -14,7 +12,22 @@ interface ScriptStr {
             }
         }
 
-        class Runtime(val scriptStrResult: Result)
+        class ValueFromThisRefOfMap<T>(inline val getDefault: (String) -> T) {
+            @Suppress("UNCHECKED_CAST")
+            operator fun getValue(map: Map<*, *>, property: kotlin.reflect.KProperty<*>): T {
+                return if (map.containsKey(property.name)) map[property.name] as T else getDefault(property.name)
+            }
+        }
+
+        private val stringValue = ValueFromThisRefOfMap { "" }
+
+        class Runtime(val scriptStrResult: Result) {
+            val Map<String, Any?>.bindings: Map<String, Any?> by ValueFromThisRefOfMap { emptyMap() }
+            val Map<String, Any?>.scriptPath: String by stringValue
+            val Map<String, Any?>.tmpDirBig: String by stringValue
+            val Map<String, Any?>.tmpDirQuick: String by stringValue
+            val Map<String, Any?>.args: List<String> by ValueFromThisRefOfMap { emptyList() }
+        }
 
         operator fun invoke(block: Runtime.() -> Unit): String {
             val result = Result()
