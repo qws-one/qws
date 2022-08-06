@@ -27,15 +27,4 @@ open class UtilBase {
         for (item in items) if (item.isValid()) list.add(item)
         return list
     }
-
-    fun dependenciesSrc(file: java.io.File) = linesWithoutComments(file.readText())
-
-    fun linesWithoutComments(text: String): List<String> {
-        val result = mutableListOf<String>()
-        for (line in text.lines()) line.trim().let {
-            if (it.isNotEmpty() && !it.startsWith("//") && !it.startsWith("#"))
-                result.add(it)
-        }
-        return result
-    }
 }

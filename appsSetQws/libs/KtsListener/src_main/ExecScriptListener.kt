@@ -1,19 +1,21 @@
 //abstract class ExecScriptListener(val chanelId: Int, val tmpDir: String = "") {
 abstract class ExecScriptListener(private val localHostSocket: LocalHostSocket.SocketConfig) {
+    companion object {
+        const val commandClose = "close"
+        const val commandRead = "read"
+        const val commandReturnStrForExec = "//returnStrForExec"
+    }
 
-    abstract fun newScriptEngine(): ExecEngine?
+    abstract fun newExecEngine(): ExecEngine?
 
     fun start(outputPanel: OutputPanel) {
         Thread {
-            var ktsEngine = newScriptEngine()
+            var ktsEngine = newExecEngine()
             val socketId = localHostSocket.description()
-            outputPanel println "listen '$socketId' Thread start ${Thread.currentThread()}"
+            outputPanel.usr println "listen '$socketId' Thread start ${Thread.currentThread()}"
             localHostSocket.listen {
                 outputPanel println "beg chanel='$socketId' index=$connectionIndex ${Thread.currentThread()} "
                 val t = kotlin.system.measureTimeMillis {
-                    val commandClose = "close"
-                    val commandRead = "read"
-                    val commandReturnStrForExec = "//returnStrForExec"
                     var returnStrForExec = false
                     val str = when {
                         msg == commandClose -> "".also { closeChannel() }
@@ -41,9 +43,9 @@ abstract class ExecScriptListener(private val localHostSocket: LocalHostSocket.S
                     result(scriptResult)
                 }
                 outputPanel println "end $connectionIndex ${Thread.currentThread()} t=$t"
-                if (null == ktsEngine) ktsEngine = newScriptEngine()
+                if (null == ktsEngine) ktsEngine = newExecEngine()
             }
-            outputPanel println "listen '$socketId' Thread   end ${Thread.currentThread()}"
+            outputPanel.usr println "listen '$socketId' Thread   end ${Thread.currentThread()}"
         }.start()
     }
 }

@@ -469,6 +469,7 @@ object $name {
         inline fun projectConf(noinline block: Conf.() -> Unit) = lib.SubProjectDelegate(mapOfProjects, MainUnit.empty, ConfPlane(), block) //@formatter:off
         inline fun projectConf(mainUnit: MainUnit) = lib.SubProjectDelegate(mapOfProjects, mainUnit, ConfPlane()){}
         inline fun projectConf(mainUnit: MainUnit, noinline block: Conf.() -> Unit) = lib.SubProjectDelegate(mapOfProjects, mainUnit, ConfPlane(), block)
+        inline fun projectConf(mainUnit: MainUnit, srcDirs: List<String>, noinline block: Conf.() -> Unit) = lib.SubProjectDelegate(mapOfProjects, mainUnit, ConfC(srcDirs), block)
         inline fun projectConf(srcDirs: List<String>, noinline block: Conf.() -> Unit) = lib.SubProjectDelegate(mapOfProjects, MainUnit.empty, ConfC(srcDirs), block)
         inline fun <reified T : Conf> project() = project<T> {} //@formatter:on
         inline fun <reified T : Conf> project(noinline block: T.() -> Unit) = project(MainUnit.empty, block)

@@ -10,6 +10,9 @@ interface ScriptStr {
             inline infix fun put(stringResult: String) {
                 str = stringResult
             }
+            inline infix fun append(stringResult: String) {
+                str += stringResult
+            }
         }
 
         class ValueFromThisRefOfMap<T>(inline val getDefault: (String) -> T) {

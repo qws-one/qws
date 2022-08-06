@@ -194,7 +194,7 @@ object LocalHostSocket {
                 }
             }
         } catch (e: Exception) {
-            log err e
+            log err "Error while LocalHostSocket.sent to '${socketConfig.description()}' error: '$e'"
         }
         return ""
     }

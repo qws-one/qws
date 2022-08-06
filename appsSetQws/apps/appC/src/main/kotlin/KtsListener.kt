@@ -19,7 +19,7 @@ object KtsListener {
             //socket.tryToFree()
         }
         val scriptListener = object : ExecScriptListener(socket) {
-            override fun newScriptEngine() = javax.script.ScriptEngineManager().getEngineByExtension("kts")?.let {
+            override fun newExecEngine() = javax.script.ScriptEngineManager().getEngineByExtension("kts")?.let {
                 object : ExecEngine {
                     override fun exec(any: String) = it.eval(any)
                 }

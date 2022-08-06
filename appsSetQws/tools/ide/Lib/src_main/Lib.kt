@@ -33,6 +33,7 @@ object Lib {
         }
     }
 
+    fun newScriptEngine(map: Map<String, Any?>) = newScriptEngine()?.apply { map.forEach { (key, value) -> setBinding(key, value) } }
     fun newScriptEngine(): IdeScriptEngine_typealias? {
         for (engineInfo in IdeScriptEngineMgr.getInstance().engineInfos) {
             if (engineInfo.fileExtensions.contains("kts")) {

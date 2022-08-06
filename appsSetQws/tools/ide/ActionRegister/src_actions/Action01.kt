@@ -1,18 +1,16 @@
-//
-
-@Suppress("unused", "UNUSED_PARAMETER")
-object Action01 {
+@Suppress("unused")
+object Action01 : ScriptStr {
     private const val id = "QwsDebugAction01"
     private const val keymapShortcut = "ctrl alt shift F9"
 
-    fun script(args: Array<String>, bindings: Map<String, Any?>): Any {
-        Lib.registerAction(id, keymapShortcut, IdeDumbAwareAction.create { actionEvent ->
+    override fun script(runtimeMap: Map<String, Any?>): String {
+        Lib.action.register(id, keymapShortcut, IdeDumbAwareAction.create { actionEvent ->
             val project = actionEvent.project ?: return@create
-            if (project.name != Lib.qwsProjectName) return@create
-            val outputPanel = Lib.outputPanel(project.name, Lib.consolePanelName) ?: return@create
+            if (project.name != Const.qwsProjectName) return@create
+            val outputPanel = Lib.outputPanel(project.name, Const.consolePanelName) ?: return@create
             outputPanel.toFrontRunContent()
-            outputPanel.out println "from $id  ${Lib.debugLabel}"
+            outputPanel.out println "from $id  ${Const.debugLabel}"
         })
-        return "[${Lib.debugLabel}] action $id registered"
+        return "[${Const.debugLabel}] action $id registered"
     }
 }

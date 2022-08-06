@@ -14,10 +14,9 @@ object MainArgsCheck : ScriptStr {
     @JvmStatic
     fun main(args: Array<String>) = RunScriptStr(args) {
         conf(
-            needBindings = true,
-            needScriptPath = true,
             args = args.plus("one"),
-            runEnv = runEnv.copy(needTmpDirQuick = true),
+            needBindings = true,
+            runEnv = runEnv.copy(needScriptPath = true, needTmpDirQuick = true),
         )
     }
 }

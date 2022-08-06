@@ -5,7 +5,7 @@ object ReloadActions {
     private const val id = "QwsDebugReloadActions"
     private const val keymapShortcut = "ctrl alt shift F12"
 
-    private fun go(filePath: String, outputPanel: Lib.OutputPanel) {
+    private fun go(filePath: String, outputPanel: OutputIdePanel) {
         Lib.newScriptEngine()?.run {
             val scriptFile = java.io.File(filePath)
             val moduleDir = scriptFile.parentFile.parentFile
@@ -14,7 +14,7 @@ object ReloadActions {
             val importsFile /* */ = java.io.File(moduleDir, "tmp/imports.txt")
 
             val scriptStr = scriptFile.readText()
-            val scriptSha1 = Lib.sha1sum(scriptStr)
+            val scriptSha1 = Util.sha1sum(scriptStr)
 
             val script = """
 ${importsFile.readText()}
@@ -37,35 +37,35 @@ res
         }
     }
 
-    private fun reloadActions(scriptSha1: String, project: IdeProject, outputPanel: Lib.OutputPanel) {
+    private fun reloadActions(scriptSha1: String, project: IdeProject, outputPanel: OutputIdePanel) {
         val basePath = project.basePath ?: return
 
         ApplicationMgr.getApplication().runWriteAction { FileDocumentMgr.getInstance().saveAllDocuments() }
 
-        outputPanel.out println "from $id  ${Lib.debugLabel} start reload actions"
+        outputPanel.out println "from $id  ${Const.debugLabel} start reload actions"
         val placeOfModule = "tools/ide/ActionRegister"
         java.io.File("$basePath/$placeOfModule/src_actions/").listFiles()?.forEach {
             go(it.absolutePath, outputPanel)
         }
         val scriptFile = java.io.File("$basePath/$placeOfModule/tool/ReloadActions.kt")
-        val scriptFileSha1 = Lib.sha1sum(scriptFile.readText())
+        val scriptFileSha1 = Util.sha1sum(scriptFile.readText())
 
-        outputPanel.out println "from $id  ${Lib.debugLabel} scriptFileSha1=$scriptFileSha1 scriptSha1=$scriptSha1"
+        outputPanel.out println "from $id  ${Const.debugLabel} scriptFileSha1=$scriptFileSha1 scriptSha1=$scriptSha1"
         if (scriptSha1 != scriptFileSha1) go(scriptFile.absolutePath, outputPanel)
         outputPanel.toFrontRunContent()
     }
 
     fun script(args: Array<String>, bindings: Map<String, Any?>): Any {
         val scriptSha1 = args[1]
-        Lib.registerAction(id, keymapShortcut, IdeDumbAwareAction.create { actionEvent ->
+        Lib.action.register(id, keymapShortcut, IdeDumbAwareAction.create { actionEvent ->
             val project = actionEvent.project ?: return@create
-            if (project.name != Lib.qwsProjectName) return@create
-            val outputPanel = Lib.outputPanel(project.name, Lib.consolePanelName) ?: return@create
+            if (project.name != Const.qwsProjectName) return@create
+            val outputPanel = Lib.outputPanel(project.name, Const.consolePanelName) ?: return@create
             outputPanel.toFrontRunContent()
             ApplicationMgr.getApplication().invokeLater {
                 reloadActions(scriptSha1, project, outputPanel)
             }
         })
-        return "[${Lib.debugLabel}] action $id registered"
+        return "[${Const.debugLabel}] action $id registered"
     }
 }

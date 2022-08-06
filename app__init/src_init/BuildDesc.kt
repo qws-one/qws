@@ -52,13 +52,19 @@ class BuildDesc : BuildDescBase() {
 
             object ide {
                 val TypeAlias by projectConf(MainUnit.plain(needName = false, "ignoreSrcFileName" to "TypeAliasTransient.kt"))
-                val ActionRegister by projectConf(srcDirs = listOf("src_lib", "src_actions", "src_tool")) {
-                    implementation(TypeAlias)
+                val ActionRegister by projectConf(MainUnit.toRun, srcDirs = listOf("src_actions", "src_tool")) {
+                    implementation(libs.Util)
+                    implementation(libs.LocalHostSocket)
+                    implementation(libs.SimpleReflect)
+                    implementation(libs.ScriptStr, libs.ScriptStrRunEnv, RunScriptStr)
+                    implementation(libs.logs.OutputPanel, libs.KtsListener)
+                    implementation(Lib, TypeAlias)
+                    implementation(BuildDescConst)
+                    implementation(Config)
                 }
                 val Lib by projectConf {
                     implementation(libs.logs.OutputPanel, TypeAlias)
                 }
-
                 val KtsListener by project<ConfModule>(MainUnit toRun "IdeListener") {
                     implementation(libs.Util)
                     implementation(libs.LocalHostSocket)

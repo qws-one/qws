@@ -35,11 +35,38 @@ class OutputIdePanel(val projectName: String, val descriptor: IdeRunContentDescr
         }
     }
 
+    override val sys = object : OutputPanel.Out {
+        override fun print(msg: Any?) {
+            consoleView?.print(msg.string(), IdeConsoleViewContentType.SYSTEM_OUTPUT)
+        }
+
+        override fun println(msg: Any?) {
+            consoleView?.print(msg.stringln(), IdeConsoleViewContentType.SYSTEM_OUTPUT)
+        }
+    }
+
+    override val usr = object : OutputPanel.Out {
+        override fun print(msg: Any?) {
+            consoleView?.print(msg.string(), IdeConsoleViewContentType.USER_INPUT)
+        }
+
+        override fun println(msg: Any?) {
+            consoleView?.print(msg.stringln(), IdeConsoleViewContentType.USER_INPUT)
+        }
+    }
+
     fun printHyperlink(msg: Any?, block: (IdeProject) -> Unit) =
         consoleView?.printHyperlink(msg.string(), IdeHyperlinkInfo { block(it) })
 
+    fun printlnHyperlink(msg: Any?, block: (IdeProject) -> Unit) =
+        consoleView?.printHyperlink(msg.stringln(), IdeHyperlinkInfo { block(it) })
+
     override fun printHyperlinkDummy(msg: Any?, block: () -> Unit) {
         consoleView?.printHyperlink(msg.string(), IdeHyperlinkInfo { block() })
+    }
+
+    override fun printlnHyperlinkDummy(msg: Any?, block: () -> Unit) {
+        consoleView?.printHyperlink(msg.stringln(), IdeHyperlinkInfo { block() })
     }
 
     @Suppress("DEPRECATION")

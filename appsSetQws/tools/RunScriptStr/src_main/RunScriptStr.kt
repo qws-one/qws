@@ -21,6 +21,11 @@ class RunScriptStr {
     abstract class Abstract<C> {
         abstract val conf: C
         val dummyChanelId = ToolSharedConfig.chanelId_Dummy
+        val chanelIdDefault = ToolSharedConfig.chanelIdDefault
+        val chanelIdPlaneScriptListener = ToolSharedConfig.chanelId_ScriptListener
+        val chanelIdPlaneScriptListenerSE = ToolSharedConfig.chanelId_ScriptListenerSE
+        val chanelIdIdeScriptListener = ToolSharedConfig.chanelId_IdeScriptListener
+        val chanelIdIdeScriptListenerSE = ToolSharedConfig.chanelId_IdeScriptListenerSE
         val runEnv get() = ConfBase.RunEnv()
     }
 
@@ -30,7 +35,7 @@ class RunScriptStr {
         companion object : Abstract<ConfLite>() {
             override val conf get() = conf()
             fun conf(
-                chanelId: Int = ToolSharedConfig.chanelId_ScriptListener,
+                chanelId: Int = chanelIdDefault,
                 runEnv: RunEnv = RunEnv(),
             ) = ConfLite(chanelId = chanelId, runEnv = runEnv, forRuntime = ForRuntime())
         }
@@ -39,10 +44,9 @@ class RunScriptStr {
     data class Conf(
         override val chanelId: Int,
         val needBindings: Boolean,
-        val needScriptPath: Boolean,
         val needArgs: Boolean,
         override val runEnv: RunEnv,
-        val saveToPlace: List<ModuleUtil.Place>,
+        val saveToPlace: List<PlaceUtil.Place>,
         val needSaveToFileDebug: Boolean,
         val withoutRunScriptStr: Boolean,
         val debugCase_fromFile: Boolean,
@@ -51,27 +55,27 @@ class RunScriptStr {
         var hasUnitScriptStrRunEnv: Boolean = false,
         override val forRuntime: ForRuntime = ForRuntime()
     ) : ConfBase() {
-        class ByArgs(private val argsArray: Array<String>) : Abstract<Conf>() {
+        @Suppress("PropertyName")
+        class ByArgs(private val argsArray: Array<String>) : Abstract<Conf>(), PlaceUtil.Places by PlaceUtil.Places {
             override val conf get() = conf()
+            val ide_scripting = Companion.ide_scripting
             fun conf(
+                chanelId: Int = chanelIdDefault,
                 uniqueString: String = "",
                 args: Array<String> = argsArray,
 
-                chanelId: Int = ToolSharedConfig.chanelId_ScriptListener,
                 needBindings: Boolean = false,
-                needScriptPath: Boolean = false,
                 needArgs: Boolean = args.isNotEmpty(),
                 runEnv: RunEnv = RunEnv(),
-                needSaveToFileDebug: Boolean = true,
+                needSaveToFileDebug: Boolean = false,
                 withoutRunScriptStr: Boolean = true,
-
-                ) = Conf(
+                saveToPlace: List<PlaceUtil.Place> = emptyList(),
+            ) = Conf(
                 chanelId = chanelId,
                 needBindings = needBindings,
-                needScriptPath = needScriptPath,
                 needArgs = needArgs,
                 runEnv = runEnv,
-                saveToPlace = emptyList(),
+                saveToPlace = saveToPlace,
                 needSaveToFileDebug = needSaveToFileDebug,
                 withoutRunScriptStr = withoutRunScriptStr,
                 debugCase_fromFile = false,
@@ -80,25 +84,23 @@ class RunScriptStr {
             )
         }
 
-        companion object : Abstract<Conf>(), ModuleUtil.Places by ModuleUtil.Places {
+        companion object : Abstract<Conf>(), PlaceUtil.Places by PlaceUtil.Places {
             override val conf get() = conf()
             const val ide_scripting = "ide-scripting"
             fun conf(
-                chanelId: Int = ToolSharedConfig.chanelId_ScriptListener,
+                chanelId: Int = chanelIdDefault,
                 needBindings: Boolean = false,
-                needScriptPath: Boolean = false,
                 needArgs: Boolean = false,
                 runEnv: RunEnv = RunEnv(),
                 needSaveToFileDebug: Boolean = false,
                 withoutRunScriptStr: Boolean = false,
-                saveToPlace: List<ModuleUtil.Place> = emptyList(),
+                saveToPlace: List<PlaceUtil.Place> = emptyList(),
                 debugCase_fromFile: Boolean = false,
 
                 args: Array<String> = emptyArray(),
             ) = Conf(
                 chanelId = chanelId,
                 needBindings = needBindings,
-                needScriptPath = needScriptPath,
                 needArgs = needArgs,
                 runEnv = runEnv,
                 saveToPlace = saveToPlace,
@@ -135,9 +137,5 @@ class RunScriptStr {
 
         operator fun invoke(args: Array<String>) = RunScriptStrFull.runScriptStr(Conf.ByArgs(args).conf())
         operator fun invoke(args: Array<String>, block: Conf.ByArgs.() -> Conf) = RunScriptStrFull.runScriptStr(Conf.ByArgs(args).block())
-        fun invokeDebug(args: Array<String>, block: Conf.ByArgs.() -> Conf) {
-            val conf = Conf.ByArgs(args).block()
-            RunScriptStrFull.runScriptStr(conf)
-        }
     }
 }

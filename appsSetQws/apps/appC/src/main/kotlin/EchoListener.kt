@@ -16,7 +16,7 @@ object EchoListener {
             socket.tryToFree()
         }
         val scriptListener = object : ExecScriptListener(socket) {
-            override fun newScriptEngine() = object : ExecEngine {
+            override fun newExecEngine() = object : ExecEngine {
                 override fun exec(any: String) = "echo: '$any'"
             }
         }

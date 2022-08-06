@@ -1,5 +1,5 @@
 @Suppress("ObjectPropertyName")
-object RunScriptStrFull : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs, BuildDescConstPlus by BuildDescConstPlus, BuildDescGen by BuildDescGen {
+object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs, BuildDescConstPlus by BuildDescConstPlus, BuildDescGen by BuildDescGen {
     private val RunScriptStr.ConfBase.scriptStrEnvText
         get() = """object $scriptStrEnv {
     val scriptPath ${if (runEnv.needScriptPath) "by lazy { \"${forRuntime.scriptPath}\" }" else "= \"\""}
@@ -9,18 +9,18 @@ object RunScriptStrFull : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs, Bu
 }"""
     private val RunScriptStr.Conf.scriptArgs
         get() : String {
-            val bindings by Util.stringOfName { if (needBindings) "\"$it\" to $it" else "" }
-            val tmpDirBig by StringOfName { if (forRuntime.tmpDirBig.isNotEmpty()) """"$it" to "${forRuntime.tmpDirBig}"""" else "" }
-            val tmpDirQuick by StringOfName { if (forRuntime.tmpDirQuick.isNotEmpty()) """"$it" to "${forRuntime.tmpDirQuick}"""" else "" }
-            val scriptPath by StringOfName { if (needScriptPath) """"$it" to "${forRuntime.scriptPath}"""" else "" }
-            val args by StringOfName { name ->
+            val bindings by stringOfName { if (needBindings) "\"$it\" to $it" else "" }
+            val tmpDirBig by stringOfName { if (forRuntime.tmpDirBig.isNotEmpty()) """"$it" to "${forRuntime.tmpDirBig}"""" else "" }
+            val tmpDirQuick by stringOfName { if (forRuntime.tmpDirQuick.isNotEmpty()) """"$it" to "${forRuntime.tmpDirQuick}"""" else "" }
+            val scriptPath by stringOfName { if (runEnv.needScriptPath) """"$it" to "${forRuntime.scriptPath}"""" else "" }
+            val args by stringOfName { name ->
                 when {
                     needArgs && forRuntime.args.isNotEmpty() -> "\"$name\" to listOf(${forRuntime.args.joinToString { "\"$it\"" }})"
                     needArgs && forRuntime.args.isEmpty() -> "\"$name\" to emptyList<String>()"
                     else -> ""
                 }
             }
-            val list = Util.listOfValid(
+            val list = listOfValid(
                 bindings,
                 tmpDirBig,
                 tmpDirQuick,
@@ -60,7 +60,6 @@ object RunScriptStrFull : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs, Bu
             return listOf(appsPlace, appInitPlace, appsSetPlace, modulePlace)
         }
 
-    @Suppress("unused")
     fun appsPlacesFromFile(scriptPath: String): List<FsPath> {
         val ktFsPath = FsPath.from(scriptPath)
         val moduleInfoSrcDir = ktFsPath.file.lookupToParentByName(BuildDescConst.src_module_info) ?: TODO()
@@ -68,19 +67,17 @@ object RunScriptStrFull : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs, Bu
         val appsSetPlace = modulePlace.lookupToParentByName(BuildDescConst.settings_gradle_kts)?.up ?: TODO()
         val appInitDir = appsSetPlace.lookupToParentByName(app__init) ?: TODO()
         val appsPlace = appInitDir.up ?: TODO()
-        val moduleInfoFile = moduleInfoSrcDir.file(BuildDescConst.ModuleInfo + kt)
+        //val moduleInfoFile = moduleInfoSrcDir.file(BuildDescConst.ModuleInfo + kt)
         return listOf(
             appsPlace.fsPath,
             appInitDir.fsPath,
             appsSetPlace.fsPath,
             modulePlace.fsPath,
-            moduleInfoSrcDir.fsPath,
-            moduleInfoFile.fsPath,
-            ktFsPath
+            moduleInfoSrcDir.fsPath
         )
     }
 
-    private fun String.saveTo(places: List<ModuleUtil.Place>, modulePlace: FsPath) {
+    private fun String.saveTo(places: List<PlaceUtil.Place>, modulePlace: FsPath) {
         val str = this
         val moduleDir = modulePlace.file
         val appsSetPlace by lazy { moduleDir.lookupToParentByName(BuildDescConst.settings_gradle_kts)?.up ?: TODO() }
@@ -89,10 +86,10 @@ object RunScriptStrFull : LocalFs.Is by LocalFs, LocalFs.Is.Fs by LocalFs.fs, Bu
 
         places.forEach { place ->
             when (place.parent) {
-                ModuleUtil.Place.Parent.Module -> modulePlace.file(place.path) update str
-                ModuleUtil.Place.Parent.AppsSetPlace -> appsSetPlace.file(place.path) update str
-                ModuleUtil.Place.Parent.AppsPlace -> appsPlace.file(place.path) update str
-                ModuleUtil.Place.Parent.IdeScripting -> {
+                PlaceUtil.Place.Parent.Module -> modulePlace.file(place.path) update str
+                PlaceUtil.Place.Parent.AppsSetPlace -> appsSetPlace.file(place.path) update str
+                PlaceUtil.Place.Parent.AppsPlace -> appsPlace.file(place.path) update str
+                PlaceUtil.Place.Parent.IdeScripting -> {
                     if (ideScriptingPath.valid) {
                         val ideScripting = ideScriptingPath.file
                         if (ideScripting.exists() && ideScripting.isDirectory) ideScripting.file(place.path) update str

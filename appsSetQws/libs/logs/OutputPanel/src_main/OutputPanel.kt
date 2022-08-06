@@ -5,7 +5,11 @@ interface OutputPanel : PrintLine {
     }
 
     val out: Out
+    val sys: Out
+    val usr: Out
     val err: Out
+
     fun printHyperlinkDummy(msg: Any?, block: () -> Unit)
+    fun printlnHyperlinkDummy(msg: Any?, block: () -> Unit)
     fun toFrontRunContent(): OutputPanel
 }
