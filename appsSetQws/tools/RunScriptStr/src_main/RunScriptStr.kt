@@ -6,13 +6,16 @@ class RunScriptStr {
 
         data class RunEnv(
             val needScriptPath: Boolean = false,
+            val needAppsPlacePath: Boolean = false,
             val needTmpDirBig: Boolean = false,
             val needTmpDirQuick: Boolean = false,
         )
 
         data class ForRuntime(
             val args: List<String> = emptyList(),
+            val scriptName: String = "",
             val scriptPath: String = "",
+            val appsPlacePath: String = "",
             val tmpDirBig: String = "",
             val tmpDirQuick: String = "",
         )
@@ -56,7 +59,7 @@ class RunScriptStr {
         override val forRuntime: ForRuntime = ForRuntime()
     ) : ConfBase() {
         @Suppress("PropertyName")
-        class ByArgs(private val argsArray: Array<String>) : Abstract<Conf>(), PlaceUtil.Places by PlaceUtil.Places {
+        class ByArgs(val objectName: String, private val argsArray: Array<String>) : Abstract<Conf>(), PlaceUtil.Places by PlaceUtil.Places {
             override val conf get() = conf()
             val ide_scripting = Companion.ide_scripting
             fun conf(
@@ -80,7 +83,7 @@ class RunScriptStr {
                 withoutRunScriptStr = withoutRunScriptStr,
                 debugCase_fromFile = false,
                 uniqueString = uniqueString,
-                forRuntime = ForRuntime(args = args.toList())
+                forRuntime = ForRuntime(scriptName = objectName, args = args.toList())
             )
         }
 
@@ -115,6 +118,12 @@ class RunScriptStr {
     @Suppress("unused", "RemoveRedundantQualifierName", "MemberVisibilityCanBePrivate")
     companion object {
         private val full = RunScriptStrFull
+        private fun byArgs(args: Array<String>): Conf.ByArgs {
+            val caller = Thread.currentThread().stackTrace[3]
+            val objectName: String = caller.className
+            return Conf.ByArgs(objectName, args)
+        }
+
         val buildConfLite get() : ConfLite = buildConfLite()
         fun buildConfLite(): ConfLite = with(full) { updateRunEnv(appInitDir.fsPath, ConfLite.conf) }
         fun buildConfLite(block: ConfLite.Companion.() -> ConfLite): ConfLite = with(full) { updateRunEnv(appInitDir.fsPath, ConfLite.block()) }
@@ -135,7 +144,7 @@ class RunScriptStr {
         operator fun invoke(moduleInfo: ModuleUtil.Info, block: Conf.Companion.() -> Conf) =
             RunScriptStrFull.runScriptStr(moduleInfo, block(Conf.Companion))
 
-        operator fun invoke(args: Array<String>) = RunScriptStrFull.runScriptStr(Conf.ByArgs(args).conf())
-        operator fun invoke(args: Array<String>, block: Conf.ByArgs.() -> Conf) = RunScriptStrFull.runScriptStr(Conf.ByArgs(args).block())
+        operator fun invoke(args: Array<String>) = RunScriptStrFull.runScriptStr(byArgs(args).conf())
+        operator fun invoke(args: Array<String>, block: Conf.ByArgs.() -> Conf) = RunScriptStrFull.runScriptStr(byArgs(args).block())
     }
 }

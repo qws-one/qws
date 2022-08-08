@@ -25,6 +25,7 @@ rootProject.buildFileName = ".root.gradle.kts"
 ":tools:ide:KtsListener".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":tools:ide:Lib".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":tools:ide:TypeAlias".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
+":tools:ide:action:all".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":tools:ide:action:ideAction".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":tools:ide:script:three".let { include(it); project(it).buildFileName = ".build.gradle.kts" }
 ":tools:script:four".let { include(it); project(it).buildFileName = ".build.gradle.kts" }

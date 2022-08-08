@@ -52,7 +52,8 @@ class BuildDesc : BuildDescBase() {
 
             object ide {
                 val TypeAlias by projectConf(MainUnit.plain(needName = false, "ignoreSrcFileName" to "TypeAliasTransient.kt"))
-                val ActionRegister by projectConf(MainUnit.toRun, srcDirs = listOf("src_actions", "src_tool")) {
+                val ActionRegister by projectConf(MainUnit.toRun) {
+                    implementation(action.all)
                     implementation(libs.Util)
                     implementation(libs.LocalHostSocket)
                     implementation(libs.SimpleReflect)
@@ -77,6 +78,10 @@ class BuildDesc : BuildDescBase() {
                 }
 
                 object action {
+                    val all by projectConf {
+                        implementation(BuildDescConst, TypeAlias, Lib)
+                        implementation(libs.Util, libs.ScriptStr, libs.logs.OutputPanel)
+                    }
                     val ideAction by project<IdeAction>(MainUnit.toRun) { implementation(BuildDescConst) }
                 }
 

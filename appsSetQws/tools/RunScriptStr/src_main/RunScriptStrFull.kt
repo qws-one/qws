@@ -3,6 +3,7 @@ object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by Lo
     private val RunScriptStr.ConfBase.scriptStrEnvText
         get() = """object $scriptStrEnv {
     val scriptPath ${if (runEnv.needScriptPath) "by lazy { \"${forRuntime.scriptPath}\" }" else "= \"\""}
+    val appsPlacePath ${if (runEnv.needAppsPlacePath) "by lazy { \"${forRuntime.appsPlacePath}\" }" else "= \"\""}
     val tmpDirBig ${if (runEnv.needTmpDirBig) "by lazy { \"${forRuntime.tmpDirBig}\" }" else "= \"\""}
     val tmpDirQuick ${if (runEnv.needTmpDirQuick) "by lazy { \"${forRuntime.tmpDirQuick}\" }" else "= \"\""}
     val args by lazy { listOf<String>(${forRuntime.args.joinToString { "\"$it\"" }}) }
@@ -13,6 +14,8 @@ object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by Lo
             val tmpDirBig by stringOfName { if (forRuntime.tmpDirBig.isNotEmpty()) """"$it" to "${forRuntime.tmpDirBig}"""" else "" }
             val tmpDirQuick by stringOfName { if (forRuntime.tmpDirQuick.isNotEmpty()) """"$it" to "${forRuntime.tmpDirQuick}"""" else "" }
             val scriptPath by stringOfName { if (runEnv.needScriptPath) """"$it" to "${forRuntime.scriptPath}"""" else "" }
+            val appsPlacePath by stringOfName { if (runEnv.needAppsPlacePath) """"$it" to "${forRuntime.appsPlacePath}"""" else "" }
+            val scriptName by stringOfName { forRuntime.scriptName.let { value -> if (value.isNotEmpty()) """"$it" to "$value"""" else "" } }
             val args by stringOfName { name ->
                 when {
                     needArgs && forRuntime.args.isNotEmpty() -> "\"$name\" to listOf(${forRuntime.args.joinToString { "\"$it\"" }})"
@@ -25,6 +28,8 @@ object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by Lo
                 tmpDirBig,
                 tmpDirQuick,
                 scriptPath,
+                appsPlacePath,
+                scriptName,
                 args,
             ) { isNotEmpty() }
             return if (list.isNotEmpty()) "mapOf(${list.joinToString()})" else "emptyMap()"
@@ -38,8 +43,8 @@ object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by Lo
     private const val allIdeTypeAlias = "tmp/__all_ide_TypeAlias.kt"
     private val tempDir by lazy { kotlin.io.path.Path(System.getProperty("user.home"), ".cache/").toAbsolutePath().toString() }
 
-    val defaultTmpDirBig by lazy { kotlin.io.path.Path(tempDir, "qws_tmpBig").toAbsolutePath().toString() }
-    val defaultTmpDirQuick by lazy { kotlin.io.path.Path(tempDir, "qws_tmpQuick").toAbsolutePath().toString() }
+    private val defaultTmpDirBig by lazy { kotlin.io.path.Path(tempDir, "qws_tmpBig").toAbsolutePath().toString() }
+    private val defaultTmpDirQuick by lazy { kotlin.io.path.Path(tempDir, "qws_tmpQuick").toAbsolutePath().toString() }
 
     private val scriptStrEnv = ScriptStrRunEnv::class.simpleName ?: TODO()
     private val ignore = setOf(
@@ -101,6 +106,7 @@ object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by Lo
 
     fun <T : RunScriptStr.ConfBase> updateRunEnv(appInitFsPath: FsPath, conf: RunScriptStr.ConfBase): T {
         val forRuntime = conf.forRuntime.copy(
+            appsPlacePath = if (conf.runEnv.needAppsPlacePath) appInitFsPath.file.up?.absolutePath ?: TODO() else "",
             tmpDirBig = if (conf.runEnv.needTmpDirBig) appInitFsPath.file(conf_place.of__tmp_dir_big).fromFile
                 .path.ifEmpty { defaultTmpDirBig } else "",
             tmpDirQuick = if (conf.runEnv.needTmpDirQuick) appInitFsPath.file(conf_place.of__tmp_dir_quick).fromFile
@@ -114,6 +120,7 @@ object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by Lo
     }
 
     private fun runScriptStr(scriptStr: String, config: RunScriptStr.Conf, tmpDir: () -> String) {
+        println("Full.runScriptStr scriptPath=${config.forRuntime.scriptPath}")
         if (config.chanelId != RunScriptStr.Conf.dummyChanelId) {
             LocalHostSocket.configureToSystemOut()
             val socket = if (config.runEnv.needTmpDirQuick) {
@@ -134,7 +141,6 @@ object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by Lo
                 srcDirs.firstNotNullOf { modulePlace.file(it).listFiles.firstOrNull { f -> ktFileName == f.name } }
             }
         }
-
         val fullConf = config.copy(forRuntime = config.forRuntime.copy(scriptPath = ktFile.absolutePath))
         val scriptStrByModuleInfo = fromModuleInfo(className, moduleInfo, fullConf)
         if (config.debugCase_fromFile) {
@@ -155,7 +161,6 @@ object RunScriptStrFull : UtilBase(), LocalFs.Is by LocalFs, LocalFs.Is.Fs by Lo
             config.forRuntime.args.firstOrNull()?.run { fsPath.file }?.takeIf { it.exists() && fileName == it.name }?.fsPath
                 ?: findFirstFileBy(fileName, config.uniqueString) ?: TODO()
         }
-        println("Full.runScriptStr scriptPath=$ktFileFsPath")
         val fullConf = config.copy(forRuntime = config.forRuntime.copy(scriptPath = ktFileFsPath.path))
         val (appInitPlace, scriptStrByFile) = fromFile(fullConf, funMainArgs)
         runScriptStr(scriptStrByFile, fullConf) { appInitPlace.file(conf_place.of__tmp_dir_quick).fromFile.path }

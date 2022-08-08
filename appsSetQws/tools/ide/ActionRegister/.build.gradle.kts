@@ -15,8 +15,9 @@ dependencies {
     implementation(project(":tools:RunScriptStr"))
     implementation(project(":tools:ide:Lib"))
     implementation(project(":tools:ide:TypeAlias"))
+    implementation(project(":tools:ide:action:all"))
 }
-sourceSets.main { java.srcDirs("src_actions", "src_tool") }
+sourceSets.main { java.srcDirs("src_main") }
 
 application {
     mainClass.set("ActionRegister")

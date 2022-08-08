@@ -26,7 +26,9 @@ interface ScriptStr {
 
         class Runtime(val scriptStrResult: Result) {
             val Map<String, Any?>.bindings: Map<String, Any?> by ValueFromThisRefOfMap { emptyMap() }
+            val Map<String, Any?>.scriptName: String by stringValue
             val Map<String, Any?>.scriptPath: String by stringValue
+            val Map<String, Any?>.appsPlacePath: String by stringValue
             val Map<String, Any?>.tmpDirBig: String by stringValue
             val Map<String, Any?>.tmpDirQuick: String by stringValue
             val Map<String, Any?>.args: List<String> by ValueFromThisRefOfMap { emptyList() }
